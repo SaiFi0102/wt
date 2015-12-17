@@ -51,6 +51,37 @@ bool WCombinedLocalizedStrings::resolveKey(const std::string& key,
 
   return false;
 }
+
+bool WCombinedLocalizedStrings::resolveKey(const std::string& key, long long moduleId,
+					   std::string& result)
+{
+  for (unsigned i = 0; i < localizedStrings_.size(); ++i) {
+    if (localizedStrings_[i]->resolveKey(key, moduleId, result))
+      return true;
+  }
+
+  return false;
+}
+
+bool WCombinedLocalizedStrings::resolveTemplateKey(const std::string &templateName, long long moduleId, std::string &result)
+{
+  for (unsigned i = 0; i < localizedStrings_.size(); ++i) {
+    if (localizedStrings_[i]->resolveTemplateKey(templateName, moduleId, result))
+      return true;
+  }
+
+  return false;
+}
+
+bool WCombinedLocalizedStrings::loadTemplateStyleSheet(const std::string &templateName, long long moduleId)
+{
+  for (unsigned i = 0; i < localizedStrings_.size(); ++i) {
+    if (localizedStrings_[i]->loadTemplateStyleSheet(templateName, moduleId))
+      return true;
+  }
+
+  return false;
+}
 #else
 std::string *WCombinedLocalizedStrings::resolveKey(const std::string& key)
 {
@@ -73,6 +104,19 @@ bool WCombinedLocalizedStrings::resolvePluralKey(const std::string& key,
 {
   for (unsigned i = 0; i < localizedStrings_.size(); ++i) {
     if (localizedStrings_[i]->resolvePluralKey(key, result, amount))
+      return true;
+  }
+
+  return false;
+}
+
+bool WCombinedLocalizedStrings::resolvePluralKey(const std::string& key,
+						 long long moduleId,
+						 std::string& result,
+						 ::uint64_t amount)
+{
+  for (unsigned i = 0; i < localizedStrings_.size(); ++i) {
+    if (localizedStrings_[i]->resolvePluralKey(key, moduleId, result, amount))
       return true;
   }
 

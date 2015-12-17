@@ -95,6 +95,7 @@ OPTION(BUILD_EXAMPLES "Build examples" ON)
 OPTION(INSTALL_EXAMPLES "Install examples (binaries and source)" OFF)
 OPTION(INSTALL_RESOURCES "Install resources directory" ON)
 OPTION(INSTALL_FINDWT_CMAKE_FILE "Install FindWt.cmake in systemwide cmake dir (in addition to CMAKE_INSTALL_PREFIX/cmake)" OFF)
+OPTION(INSTALL_3RDPARTY "Install 3rdparty directory" ON)
 OPTION(ENABLE_SSL "Enable cryptography functions, using OpenSSL" ON)
 OPTION(ENABLE_HARU "Enable Haru Free PDF Library, which is used to provide support for painting to PDF (WPdfImage)" ON)
 OPTION(ENABLE_PANGO "Enable Pango Library, which is used for improved font support (WPdfImage and WRasterImage)" ON)
@@ -554,6 +555,11 @@ IF(INSTALL_RESOURCES)
 INSTALL(DIRECTORY ${PROJECT_SOURCE_DIR}/resources DESTINATION
     ${CMAKE_INSTALL_PREFIX}/share/Wt/)
 ENDIF(INSTALL_RESOURCES)
+
+IF(INSTALL_3RDPARTY)
+INSTALL(DIRECTORY ${PROJECT_SOURCE_DIR}/src/3rdparty DESTINATION
+    ${CMAKE_INSTALL_PREFIX}/include/)
+ENDIF(INSTALL_3RDPARTY)
 
 IF(INSTALL_EXAMPLES)
   INSTALL(DIRECTORY ${PROJECT_SOURCE_DIR}/examples/ DESTINATION

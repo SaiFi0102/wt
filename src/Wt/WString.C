@@ -91,7 +91,7 @@ WString::WString(const WString& other)
 }
 
 WString::Impl::Impl()
-  : n_(-1)
+  : n_(-1), moduleAuthorId_(-1), isLanguage(true)
 { }
 
 WString::~WString()
@@ -236,17 +236,64 @@ std::string WString::resolveKey() const
       ls = server->localizedStrings();
   }
 
-  if (ls) {
-    if (impl_->n_ == -1) {
-      if (ls->resolveKey(impl_->key_, result))
-	return result;
-    } else {
-      if (ls->resolvePluralKey(impl_->key_, result, impl_->n_))
-	return result;
-    }
+  if(ls)
+  {
+	  //Check weather language or template
+	  if(impl_->isLanguage)
+	  {
+		  //Weather plural or singular
+		  if(impl_->n_ == -1)
+		  {
+			  //Weather module id was provided
+			  if(impl_->moduleAuthorId_ == -1) //get<1> = moduleId
+			  {
+				  if(ls->resolveKey(impl_->key_, result)) //get<0> = key(language key)
+					  return result;
+			  }
+			  else
+			  {
+				  if(ls->resolveKey(impl_->key_, impl_->moduleAuthorId_, result))
+					  return result;
+			  }
+		  }
+		  else
+		  {
+			  if(impl_->moduleAuthorId_ == -1)
+			  {
+				  if(ls->resolvePluralKey(impl_->key_, result, impl_->n_))
+					  return result;
+			  }
+			  else
+			  {
+				  if(ls->resolvePluralKey(impl_->key_, impl_->moduleAuthorId_, result, impl_->n_))
+					  return result;
+			  }
+		  }
+	  }
+	  else
+	  {
+		  if(ls->resolveTemplateKey(impl_->key_, impl_->moduleAuthorId_, result))
+		  {
+			  return result;
+		  }
+		  else if(ls->resolveTemplateKey(impl_->key_, impl_->moduleAuthorId_, result))
+		  {
+			  return result;
+		  }
+	  }
   }
 
-  return "??" + impl_->key_ + "??";
+  if(impl_->isLanguage)
+  {
+	  if(impl_->moduleAuthorId_ == -1)
+		  return "??" + impl_->key_ + "??";
+	  else
+		  return "??" + impl_->key_ + "(" + boost::lexical_cast<std::string>(impl_->moduleAuthorId_) + ")??";
+  }
+  else
+  {
+	  return "???" + impl_->key_ + "(" + boost::lexical_cast<std::string>(impl_->moduleAuthorId_) + ")???";
+  }
 }
 
 std::string WString::toUTF8() const
@@ -277,6 +324,11 @@ WString WString::tr(const std::string& key)
   return WString(key.c_str(), true);
 }
 
+WString WString::tr(const std::string& key, long long moduleId)
+{
+  return WString(key.c_str(), moduleId, true);
+}
+
 WString WString::trn(const char *key, ::uint64_t n)
 {
   return WString(key, true, n);
@@ -287,11 +339,41 @@ WString WString::trn(const std::string& key, ::uint64_t n)
   return WString(key.c_str(), true, n);
 }
 
+WString WString::trn(const std::string& key, long long moduleId, ::uint64_t n)
+{
+  return WString(key.c_str(), moduleId, true, n);
+}
+
+WString WString::tstr(const std::string &templateName, long long moduleId)
+{
+	return WString(templateName, moduleId);
+}
+
 WString::WString(const char *key, bool, ::uint64_t n)
 {
   impl_ = new Impl;
   impl_->key_ = key;
+  impl_->moduleAuthorId_ = -1;
   impl_->n_ = n;
+  //impl_->isLanguage = true;
+}
+
+WString::WString(const char *key, long long moduleId, bool, ::uint64_t n)
+{
+  impl_ = new Impl;
+  impl_->key_ = key;
+  impl_->moduleAuthorId_ = moduleId;
+  impl_->n_ = n;
+  //impl_->isLanguage = true;
+}
+
+WString::WString(const std::string &templateName, long long moduleId)
+{
+  impl_ = new Impl;
+  impl_->key_ = templateName;
+  impl_->moduleAuthorId_ = moduleId;
+  impl_->n_ = -1;
+  impl_->isLanguage = false;
 }
 
 #ifndef WT_NO_STD_WSTRING
@@ -327,10 +409,40 @@ WString::operator std::wstring() const
 
 const std::string WString::key() const
 {
-  if (impl_)
-    return impl_->key_;
-  else
-    return std::string();
+	if(impl_)
+	{
+		// 		if(impl_->isLanguage)
+		// 		{
+		// 			return impl_->key_ + "("+ boost::lexical_cast<std::string>(impl_->moduleAuthorId_) +")";
+		// 		}
+		// 		else
+		// 		{
+		// 			return impl_->key_ + "(" + boost::lexical_cast<std::string>(impl_->moduleAuthorId_) + ")";
+		// 		}
+		return impl_->key_;
+	}
+	else
+		return std::string();
+}
+
+long long WString::moduleAuthorId() const
+{
+	if(impl_)
+	{
+		return impl_->moduleAuthorId_;
+	}
+	else
+		return -1;
+}
+
+bool WString::isLanguage() const
+{
+	if(impl_)
+	{
+		return impl_->isLanguage;
+	}
+	else
+		return true;
 }
 
 void WString::createImpl()

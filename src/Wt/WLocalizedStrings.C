@@ -27,10 +27,33 @@ bool WLocalizedStrings::resolvePluralKey(const std::string& key,
   throw WException("WLocalizedStrings::resolvePluralKey is not supported");
 }
 
+bool WLocalizedStrings::resolvePluralKey(const std::string& key,
+										 long long ModuleId,
+										 std::string& result, 
+										 ::uint64_t amount)
+{
+	throw WException("WLocalizedStrings::resolvePluralKey is not supported");
+}
+
 int WLocalizedStrings::evaluatePluralExpression(const std::string& expression,
 						::uint64_t n)
 {
   return WMessageResources::evalPluralCase(expression, n);
+}
+
+bool WLocalizedStrings::resolveKey(const std::string& key, long long ModuleId, std::string& result)
+{
+	return false;
+}
+
+bool WLocalizedStrings::resolveTemplateKey(const std::string &templateName, long long moduleId, std::string &result)
+{
+	return false;
+}
+
+bool WLocalizedStrings::loadTemplateStyleSheet(const std::string &templateName, long long moduleId)
+{
+	return false;
 }
 
 #else

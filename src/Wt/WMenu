@@ -548,7 +548,7 @@ public:
    *
    * \sa WMenuItem::setPathComponent().
    */
-  void setInternalPathEnabled(const std::string& basePath = "");
+  virtual void setInternalPathEnabled(const std::string& basePath = "");
 
   /*! \brief Returns whether the menu generates internal paths entries.
    *

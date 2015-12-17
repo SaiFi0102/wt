@@ -74,6 +74,8 @@ protected:
    */
   WCssRule(const std::string& selector, WObject* parent = 0);
 
+  WCssRule(WObject* parent = 0);
+
 private:
   std::string  selector_;
   WCssStyleSheet *sheet_;

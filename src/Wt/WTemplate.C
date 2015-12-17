@@ -10,6 +10,7 @@
 #include <exception>
 
 #include "Wt/WApplication"
+#include "Wt/WServer"
 #include "Wt/WContainerWidget"
 #include "Wt/WLogger"
 #include "Wt/WTemplate"
@@ -443,6 +444,21 @@ void WTemplate::setTemplateText(const WString& text, TextFormat textFormat)
       text_ = escapeText(text_, true);
   } else if (textFormat == PlainText)
     text_ = escapeText(text_, true);
+
+  if (!text_.literal() && !text_.isLanguage())
+  {
+	  WLocalizedStrings *ls = 0;
+	  WApplication *app = WApplication::instance();
+	  if (app)
+		  ls = app->localizedStrings();
+
+	  if (!ls) {
+		  WServer *server = WServer::instance();
+		  if (server)
+			  ls = server->localizedStrings();
+	  }
+	  ls->loadTemplateStyleSheet(text_.key(), text_.moduleAuthorId());
+  }
 
   changed_ = true;
   repaint(RepaintSizeAffected);

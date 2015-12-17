@@ -73,12 +73,19 @@ public:
 
 #ifndef WT_TARGET_JAVA
   virtual bool resolveKey(const std::string& key, std::string& result);
+  virtual bool resolveKey(const std::string& key, long long moduleId, std::string& result);
+  virtual bool resolveTemplateKey(const std::string &templateName, long long moduleId, std::string &result);
+  virtual bool loadTemplateStyleSheet(const std::string &templateName, long long moduleId);
 #else // WT_TARGET_JAVA
   virtual std::string *resolveKey(const std::string& key) = 0;
 #endif // WT_TARGET_JAVA
 
 #ifndef WT_TARGET_JAVA
   virtual bool resolvePluralKey(const std::string& key, 
+				std::string& result,
+				::uint64_t amount);
+  virtual bool resolvePluralKey(const std::string& key,
+				long long moduleId,
 				std::string& result,
 				::uint64_t amount);
 #else // WT_TARGET_JAVA

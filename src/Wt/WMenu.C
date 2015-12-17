@@ -491,9 +491,9 @@ void WMenu::internalPathChanged(const std::string& path)
     if (bestI != -1)
       itemAt(bestI)->setFromInternalPath(path);
     else {
-      if (!subPath.empty())
-	LOG_WARN("unknown path: '"<< subPath << "'");
-      else
+//       if (!subPath.empty())
+// 	LOG_WARN("unknown path: '"<< subPath << "'");
+//       else
 	select(-1, false);
     }
   }

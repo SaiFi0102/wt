@@ -107,6 +107,11 @@ WCssRule::WCssRule(const std::string& selector, WObject* parent)
     sheet_(0)
 { }
 
+WCssRule::WCssRule(WObject* parent)
+  : WObject(parent),
+    sheet_(0)
+{ }
+
 WCssRule::~WCssRule()
 { 
   if (sheet_)

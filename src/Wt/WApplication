@@ -583,7 +583,7 @@ public:
    *
    * \sa localizedStrings(), WString::tr()
    */
-  void setLocale(const WLocale& locale);
+  void setLocale(const WLocale& locale) { setLocale(locale, true); }
 
   /*! \brief Returns the current locale.
    *
@@ -2157,6 +2157,10 @@ protected:
    * @param errorText the error will usually be in json format.
    */
   virtual void handleJavaScriptError(const std::string& errorText);
+
+  void setLocale(const WLocale& locale, bool refresh);
+  std::string oldInternalPath_;
+
 private:
   Signal< ::int64_t > requestTooLarge_;
 
