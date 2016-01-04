@@ -115,12 +115,20 @@ this.mouseDown = function(e) {
 
 this.mouseUp = function(e) {
   lastButtonUp = WT.button(e);
+  WT.buttons &= ~lastButtonUp;
+
+  /*
+   * mouse click will follow immediately and should still see the old
+   * value of mouseDragging
+   */
   setTimeout(function() {
     mouseDragging = 0;
-    WT.buttons &= ~lastButtonUp;
   }, 5);
 };
 
+/*
+ * Used to prevent a mouse click if we're actually dragging
+ */
 this.dragged = function(e) {
   return mouseDragging > 2;
 };
@@ -1090,7 +1098,7 @@ this.parsePx = function(v) {
   return parseCss(v, /^\s*(-?\d+(?:\.\d+)?)\s*px\s*$/i, 0);
 };
 
-function parsePct(v, defaultValue) {
+this.parsePct = function(v, defaultValue) {
   return parseCss(v, /^\s*(-?\d+(?:\.\d+)?)\s*\%\s*$/i, defaultValue);
 }
 
@@ -1105,7 +1113,7 @@ this.pxself = function(c, s) {
 };
 
 this.pctself = function(c, s) {
-  return parsePct(c.style[s], 0);
+  return WT.parsePct(c.style[s], 0);
 };
 
 // Convert from css property to element attribute (possibly a vendor name)
@@ -1146,7 +1154,7 @@ this.boxSizing = function(w) {
 
 // Return if an element (or one of its ancestors) is hidden
 this.isHidden = function(w) {
-  if (w.style.display == 'none')
+  if (w.style.display == 'none' || $(w).hasClass('out'))
     return true;
   else {
     w = w.parentNode;
@@ -1185,8 +1193,8 @@ this.IEwidth = function(c, min, max) {
     - WT.px(c.parentNode, 'paddingLeft')
     - WT.px(c.parentNode, 'paddingRight');
 
-    min = parsePct(min, 0);
-    max = parsePct(max, 100000);
+    min = WT.parsePct(min, 0);
+    max = WT.parsePct(max, 100000);
 
     if (r < min)
       return min-1;
@@ -2269,7 +2277,9 @@ function dragStart(obj, e) {
     display: ds.object.style.display,
     left: ds.object.style.left,
     top: ds.object.style.top,
-    className: ds.object.className
+    className: ds.object.className,
+    parent: ds.object.parentNode,
+    zIndex: ds.object.zIndex
   };
 
   ds.object.parentNode.removeChild(ds.object);
@@ -2392,6 +2402,10 @@ function dragEnd(e) {
       // could not be dropped, animate it floating back ?
     }
 
+    document.body.removeChild(ds.object);
+    ds.objectPrevStyle.parent.appendChild(ds.object);
+
+    ds.object.style.zIndex = ds.objectPrevStyle.zIndex;
     ds.object.style.position = ds.objectPrevStyle.position;
     ds.object.style.display = ds.objectPrevStyle.display;
     ds.object.style.left = ds.objectPrevStyle.left;

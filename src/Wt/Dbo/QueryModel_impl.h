@@ -171,21 +171,23 @@ bool QueryModel<Result>::setData(const WModelIndex& index,
 				 const boost::any& value, int role)
 {
   if (role == EditRole) {
-    Transaction transaction(query_.session());
+    {
+      Transaction transaction(query_.session());
 
-    Result& result = resultRow(index.row());
+      Result& result = resultRow(index.row());
 
-    int column = columns_[index.column()].fieldIdx_;
+      int column = columns_[index.column()].fieldIdx_;
 
-    const FieldInfo& field = fields()[column];
+      const FieldInfo& field = fields()[column];
 
-    boost::any dbValue = Wt::convertAnyToAny(value, *field.type());
+      boost::any dbValue = Wt::convertAnyToAny(value, *field.type());
 
-    query_result_traits<Result>::setValue(result, column, dbValue);
+      query_result_traits<Result>::setValue(result, column, dbValue);
+
+      transaction.commit();
+    }
 
     invalidateRow(index.row());
-
-    transaction.commit();
 
     return true;
   } else
@@ -253,6 +255,17 @@ Result& QueryModel<Result>::resultRow(int row)
     throw Exception("QueryModel: geometry inconsistent with database");
 
   return cache_[row - cacheStart_];
+}
+
+template <class Result>
+int QueryModel<Result>::indexOf(const Result& result) const
+{
+  for (int i = 0; i < rowCount(); ++i) {
+    if (resultRow(i) == result)
+      return i;
+  }
+
+  return -1;
 }
 
 template <class Result>
