@@ -1,111 +1,90 @@
-/*
- * Copyright (C) 2008 Emweb bvba, Heverlee, Belgium.
- *
- * See the LICENSE file for terms of use.
- */
-
 #include <Wt/WApplication>
-#include <Wt/WBreak>
 #include <Wt/WContainerWidget>
-#include <Wt/WLineEdit>
+#include <Wt/WDateEdit>
 #include <Wt/WPushButton>
 #include <Wt/WText>
-
-// c++0x only, for std::bind
-// #include <functional>
+#include <Wt/WDialog>
+#include <Wt/WTemplateFormView>
+#include <Wt/WFormModel>
 
 using namespace Wt;
 
-/*
- * A simple hello world application class which demonstrates how to react
- * to events, read input, and give feed-back.
- */
 class HelloApplication : public WApplication
 {
 public:
   HelloApplication(const WEnvironment& env);
-
-private:
-  WLineEdit *nameEdit_;
-  WText *greeting_;
-
-  void greet();
 };
 
-/*
- * The env argument contains information about the new session, and
- * the initial request. It must be passed to the WApplication
- * constructor so it is typically also an argument for your custom
- * application constructor.
-*/
+const WFormModel::Field startDateField = "startDate";
+const WFormModel::Field endDateField = "endDate";
+
 HelloApplication::HelloApplication(const WEnvironment& env)
   : WApplication(env)
 {
-  setTitle("Hello world");                               // application title
+	setTitle("HELP ME :'(");
 
-  root()->addWidget(new WText("Your name, please ? "));  // show some text
-  nameEdit_ = new WLineEdit(root());                     // allow text input
-  nameEdit_->setFocus();                                 // give focus
+	//FORM MODEL//
+	WFormModel *model = new WFormModel(this);
+	model->addField(startDateField);
+	model->addField(endDateField);
 
-  WPushButton *button
-    = new WPushButton("Greet me.", root());              // create a button
-  button->setMargin(5, Left);                            // add 5 pixels margin
+	//FORM VIEW//
+	WTemplateFormView *view = new WTemplateFormView("${startDate}<br />${endDate}");
 
-  root()->addWidget(new WBreak());                       // insert a line break
+	//Start date
+	auto startDateEdit = new Wt::WDateEdit();
+	auto startDateValidator = new Wt::WDateValidator();
+	startDateValidator->setMandatory(true);
+	startDateValidator->setBottom(Wt::WDate(boost::gregorian::day_clock::local_day()));
+	model->setValidator(startDateField, startDateValidator);
+	view->setFormWidget(startDateField, startDateEdit);
 
-  greeting_ = new WText(root());                         // empty text
+	//End date
+	auto endDateEdit = new Wt::WDateEdit();
+	auto endDateValidator = new Wt::WDateValidator();
+	model->setValidator(endDateField, endDateValidator);
 
-  /*
-   * Connect signals with slots
-   *
-   * - simple Wt-way
-   */
-  button->clicked().connect(this, &HelloApplication::greet);
+	startDateEdit->changed().connect(std::bind([startDateEdit, endDateValidator]() {
+		endDateValidator->setBottom(startDateEdit->date().addDays(1));
+	}));
+	view->setFormWidget(endDateField, endDateEdit);
 
-  /*
-   * - using an arbitrary function object (binding values with boost::bind())
-   */
-  nameEdit_->enterPressed().connect
-    (boost::bind(&HelloApplication::greet, this));
+	//Update view
+	view->updateView(model);
 
-  /*
-   * - using a c++0x lambda:
-   */
-  // button->clicked().connect(std::bind([=]() { 
-  //       greeting_->setText("Hello there, " + nameEdit_->text());
-  // }));
-}
+	//DIALOG//
+	WDialog *dialog = new Wt::WDialog(this);
+	dialog->contents()->addWidget(view);
 
-void HelloApplication::greet()
-{
-  /*
-   * Update the text, using text input into the nameEdit_ field.
-   */
-  greeting_->setText("Hello there, " + nameEdit_->text());
+	Wt::WPushButton *submitBtn = new Wt::WPushButton("Continue", dialog->contents());
+	submitBtn->clicked().connect(std::bind([=]() {
+		view->updateModel(model);
+		bool valid = model->validate();
+		view->updateView(model);
+
+		if(valid)
+			dialog->accept();
+	}));
+
+	dialog->finished().connect(std::bind([=](Wt::WDialog::DialogCode code) {
+		if(code == Wt::WDialog::Accepted)
+		{
+			dialog->contents()->removeWidget(view);
+			root()->addWidget(view);
+		}
+		delete dialog;
+	}, std::placeholders::_1));
+
+	dialog->show();
 }
 
 WApplication *createApplication(const WEnvironment& env)
 {
-  /*
-   * You could read information from the environment to decide whether
-   * the user has permission to start a new application
-   */
   return new HelloApplication(env);
 }
 
 int main(int argc, char **argv)
 {
-  /*
-   * Your main method may set up some shared resources, but should then
-   * start the server application (FastCGI or httpd) that starts listening
-   * for requests, and handles all of the application life cycles.
-   *
-   * The last argument to WRun specifies the function that will instantiate
-   * new application objects. That function is executed when a new user surfs
-   * to the Wt application, and after the library has negotiated browser
-   * support. The function should return a newly instantiated application
-   * object.
-   */
   return WRun(argc, argv, &createApplication);
 }
 
