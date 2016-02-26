@@ -529,12 +529,18 @@ const std::string *WEnvironment::getParameter(const std::string& name) const
     return 0;
 }
 
+class MissingCookieException : public std::runtime_error
+{
+public:
+	MissingCookieException(const std::string& what) : std::runtime_error(what) { }
+};
+
 const std::string WEnvironment::getCookie(const std::string& cookieName) const
 {
   CookieMap::const_iterator i = cookies_.find(cookieName);
 
   if (i == cookies_.end())
-    throw std::runtime_error("Missing cookie: " + cookieName);
+    throw MissingCookieException("Missing cookie: " + cookieName);
   else
     return i->second;
 }

@@ -145,6 +145,8 @@ public:
    */
   virtual void reset();
 
+  virtual void resetValidation();
+
   /*! \brief Validates the current input.
    *
    * The default implementation calls validateField() for each field and

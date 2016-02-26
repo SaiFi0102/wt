@@ -178,6 +178,13 @@ void WFormModel::reset()
   }
 }
 
+void WFormModel::resetValidation()
+{
+	for(FieldMap::iterator i = fields_.begin(); i != fields_.end(); ++i) {
+		i->second.validated = false;
+	}
+}
+
 bool WFormModel::valid() const
 {
   for (FieldMap::const_iterator i = fields_.begin(); i != fields_.end(); ++i) {

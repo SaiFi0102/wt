@@ -192,6 +192,9 @@ void WBootstrapTheme::apply(WWidget *widget, WWidget *child, int widgetRole)
   case NavbarMenuRole:
     child->addStyleClass(classNavbarMenu());
     break;
+  case NavbarStackedMenuRole:
+	child->addStyleClass("nav-stacked");
+	break;
   case  NavbarBtn:
     child->addStyleClass(classNavbarBtn());
     break;
