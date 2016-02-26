@@ -1577,7 +1577,8 @@ void DomElement::setJavaScriptProperties(EscapeOStream& out,
       out << var_ << ".selected=" << i->second << ';';
       break;
     case PropertySelectedIndex:
-      out << var_ << ".selectedIndex=" << i->second << ';';
+      out << "setTimeout(function() { "
+	  << var_ << ".selectedIndex=" << i->second << ";}, 0);";
       break;
     case PropertyMultiple:
       out << var_ << ".multiple=" << i->second << ';';
@@ -1590,6 +1591,15 @@ void DomElement::setJavaScriptProperties(EscapeOStream& out,
       break;
     case PropertyRowSpan:
       out << var_ << ".rowSpan=" << i->second << ";";
+      break;
+    case PropertyLabel:
+      out << var_ << ".label=";
+      if (!pushed) {
+	escaped.pushEscape(EscapeOStream::JsStringLiteralSQuote);
+	pushed = true;
+      }
+      fastJsStringLiteral(out, escaped, i->second);
+      out << ';';
       break;
     case PropertyClass:
       out << var_ << ".className=";

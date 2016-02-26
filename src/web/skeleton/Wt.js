@@ -277,12 +277,8 @@ this.initAjaxComm = function(url, handler) {
 	  if (good) {
 	    handled = true;
 	    handler(0, request.responseText, userData);
-		if(monitor)
-		  monitor.onStatusChange('connectionStatus', 1);
 	  } else {
 	    handler(1, null, userData); 
-		if(monitor)
-		  monitor.onStatusChange('connectionStatus', 0);
 	  }
 
 	  if (request) {
@@ -354,12 +350,6 @@ this.initAjaxComm = function(url, handler) {
       this.sendUpdate = function(data, userData, id, timeout) {
 	return new Request(data, userData, id, timeout);
       };
-
-	  var monitor = null;
-
-	  this.setConnectionMonitor = function(aMonitor) {
-		monitor = aMonitor;
-	  }
 
       this.setUrl = function(url) {
 	sessionUrl = url;
@@ -497,8 +487,10 @@ this.insertAt = function(p, c, pos) {
 this.remove = function(id)
 {
   var e = WT.getElement(id);
-  if (e)
+  if (e) {
+    WT.saveReparented(e);
     e.parentNode.removeChild(e);
+  }
 };
 
 this.contains = function(w1, w2) {
@@ -1098,7 +1090,7 @@ this.parsePx = function(v) {
   return parseCss(v, /^\s*(-?\d+(?:\.\d+)?)\s*px\s*$/i, 0);
 };
 
-function parsePct(v, defaultValue) {
+this.parsePct = function(v, defaultValue) {
   return parseCss(v, /^\s*(-?\d+(?:\.\d+)?)\s*\%\s*$/i, defaultValue);
 }
 
@@ -1113,7 +1105,7 @@ this.pxself = function(c, s) {
 };
 
 this.pctself = function(c, s) {
-  return parsePct(c.style[s], 0);
+  return WT.parsePct(c.style[s], 0);
 };
 
 // Convert from css property to element attribute (possibly a vendor name)
@@ -1193,8 +1185,8 @@ this.IEwidth = function(c, min, max) {
     - WT.px(c.parentNode, 'paddingLeft')
     - WT.px(c.parentNode, 'paddingRight');
 
-    min = parsePct(min, 0);
-    max = parsePct(max, 100000);
+    min = WT.parsePct(min, 0);
+    max = WT.parsePct(max, 100000);
 
     if (r < min)
       return min-1;
@@ -2425,10 +2417,11 @@ function encodeTouches(s, touches, widgetCoords) {
     if (i != 0)
       result += ';';
     result += [ t.identifier,
-		t.clientX, t.clientY,
-		t.pageX, t.pageY,
-		t.screenX, t.screenY,
-		t.pageX - widgetCoords.x, t.pageY - widgetCoords.y ].join(';');
+		Math.round(t.clientX), Math.round(t.clientY),
+		Math.round(t.pageX), Math.round(t.pageY),
+		Math.round(t.screenX), Math.round(t.screenY),
+		Math.round(t.pageX - widgetCoords.x),
+		Math.round(t.pageY - widgetCoords.y) ].join(';');
   }
 
   return result;
@@ -2588,7 +2581,6 @@ function encodeEvent(event, i) {
     result += se + 'charCode=' + charCode;
   }
 
-    
   if (typeof e.altKey !== UNDEFINED && 
       typeof e.altKey !== UNKNOWN &&
       e.altKey)
@@ -2785,6 +2777,9 @@ function webSocketAckConnect() {
 }
 
 function handleResponse(status, msg, timer) {
+  if (connectionMonitor)
+    connectionMonitor.onStatusChange('connectionStatus', status == 0 ? 1 : 0);
+
   if (quitted)
     return;
 
@@ -2872,22 +2867,21 @@ function doPollTimeout() {
     sendUpdate();
 }
 
-var updating = false;
- function setConnectionMonitor(aMonitor)
- {
-   comm.setConnectionMonitor(aMonitor);
-   connectionMonitor = aMonitor;
-   connectionMonitor.status = {};
-   connectionMonitor.status.connectionStatus = 0;
-   connectionMonitor.status.websocket = false;
-   connectionMonitor.onStatusChange = function(type, newS) {
-	var old = monitor.status[type];
-	if(old == newS) return;
-	monitor.status[type] = newS;
-	monitor.onChange(type, old, newS);
-   }
- }
+function setConnectionMonitor(aMonitor) {
+  connectionMonitor = aMonitor;
+  connectionMonitor.status = {};
+  connectionMonitor.status.connectionStatus = 0;
+  connectionMonitor.status.websocket = false;
+  connectionMonitor.onStatusChange = function(type, newS) {
+    var old = connectionMonitor.status[type];
+    if (old == newS)
+	return;
+    connectionMonitor.status[type] = newS;
+    connectionMonitor.onChange(type, old, newS);
+  };
+}
 
+var updating = false;
 
 function update(el, signalName, e, feedback) {
   /*
@@ -3016,13 +3010,14 @@ _$_$if_WEB_SOCKETS_$_();
 		  webSocketAckConnect();
 	      } else {
 		console.log("WebSocket: was expecting a connect?");
+		console.log(event.data);
 		return;
 	      }
 	    } else {
 	      if (connectionMonitor) {
 		connectionMonitor.onStatusChange('websocket', true);
-	    connectionMonitor.onStatusChange('connectionStatus', 1);
-		  }
+		connectionMonitor.onStatusChange('connectionStatus', 1);
+	      }
               websocket.state = WebSocketWorking;
 	      js = event.data;
 	    }
@@ -3037,7 +3032,7 @@ _$_$if_WEB_SOCKETS_$_();
 	     * Sometimes, we can connect but cannot send data
 	     */
 	    if (connectionMonitor)
-		connectionMonitor.onStatusChange('websocket', false);
+	      connectionMonitor.onStatusChange('websocket', false);
 	    if (websocket.reconnectTries == 3 &&
 		websocket.state == WebSocketUnknown)
 	      websocket.state = WebSocketUnavailable;
@@ -3048,8 +3043,8 @@ _$_$if_WEB_SOCKETS_$_();
 	    /*
 	     * Sometimes, we can connect but cannot send data
 	     */
-	    if(connectionMonitor)
-			 connectionMonitor.onStatusChange('websocket', false);
+	    if (connectionMonitor)
+	      connectionMonitor.onStatusChange('websocket', false);
 	    if (websocket.reconnectTries == 3 &&
 		websocket.state == WebSocketUnknown)
 	      websocket.state = WebSocketUnavailable;
@@ -3068,8 +3063,8 @@ _$_$if_WEB_SOCKETS_$_();
 	     * So, we ping pong ourselves.
 	     */
 	    if (connectionMonitor) {
-		connectionMonitor.onStatusChange('websocket', true);
-		connectionMonitor.onStatusChange('connectionStatus', 1);
+	      connectionMonitor.onStatusChange('websocket', true);
+	      connectionMonitor.onStatusChange('connectionStatus', 1);
 	    }
 
 	    /*
