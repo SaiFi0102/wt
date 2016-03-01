@@ -28,13 +28,11 @@ namespace GS
 		EntityFormModel(EntityView *view, Wt::Dbo::ptr<Entity> entityPtr = Wt::Dbo::ptr<Entity>());
 		Wt::WWidget *createFormWidget(Field field);
 		Wt::Dbo::ptr<Entity> entityPtr() const { return _entityPtr; }
-		Wt::Dbo::ptr<Account> entityAccountPtr();
 		void saveChanges();
 
 	protected:
 		EntityView *_view = nullptr;
 		Wt::Dbo::ptr<Entity> _entityPtr;
-		Wt::Dbo::ptr<Account> _entityAccountPtr;
 	};
 
 	//PersonFormModel
@@ -166,7 +164,7 @@ namespace GS
 		typedef std::vector<Wt::Dbo::ptr<ExpenseCycle>> PtrVector;
 		static const Field field;
 
-		ExpenseCyclesManagerModel(EntityView *view, Wt::Dbo::ptr<Account> entityAccountPtr);
+		ExpenseCyclesManagerModel(EntityView *view);
 		Wt::WDialog *createAddCycleDialog();
 		virtual bool validate() override;
 		Wt::WWidget *createFormWidget(Field field);
@@ -184,7 +182,7 @@ namespace GS
 		typedef std::vector<Wt::Dbo::ptr<IncomeCycle>> PtrVector;
 		static const Field field;
 
-		IncomeCyclesManagerModel(EntityView *view, Wt::Dbo::ptr<Account> entityAccountPtr);
+		IncomeCyclesManagerModel(EntityView *view);
 		Wt::WDialog *createAddCycleDialog();
 		virtual bool validate() override;
 		Wt::WWidget *createFormWidget(Field field);

@@ -15,6 +15,7 @@ namespace GS
 	class EntitiesAdminPage;
 	class PositionProxyModel;
 	class ServiceProxyModel;
+	class AccountsAdminPage;
 	//class LocationFilterModel;
 
 	typedef Wt::Dbo::QueryModel<Wt::Dbo::ptr<Entity>> FindPersonModel;
@@ -64,6 +65,7 @@ namespace GS
 		Wt::WStackedWidget *mainStack() const { return _mainStack; }
 		Wt::WStackedWidget *adminStack() const { return _adminStack; }
 		EntitiesAdminPage *entitiesAdminPage() const { return _entitiesAdminPage; }
+		AccountsAdminPage *accountsAdminPage() const { return _accountsAdminPage; }
 
 		//Error handling
 		Wt::WDialog *errorDialog() const { return _errorDialog; }
@@ -112,6 +114,7 @@ namespace GS
 		Wt::WDialog *_errorDialog = nullptr;
 		Wt::WText *_errorDialogText = nullptr;
 		EntitiesAdminPage *_entitiesAdminPage = nullptr;
+		AccountsAdminPage *_accountsAdminPage = nullptr;
 
 		FindPersonModel *_findPersonModel = nullptr;
 		FindBusinessModel *_findBusinessModel = nullptr;

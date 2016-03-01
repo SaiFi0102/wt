@@ -18,19 +18,23 @@ namespace GS
 
 	protected:
 		typedef Wt::Dbo::ptr_tuple<IncomeCycle, AccountEntry>::type IncomeCycleTuple;
-		typedef Wt::Dbo::ptr_tuple<ExpenseCycle, AccountEntry>::type ExpenseCycleTuple;
 		typedef Wt::Dbo::collection<IncomeCycleTuple> IncomeTupleCollection;
+		typedef Wt::Dbo::ptr_tuple<ExpenseCycle, AccountEntry>::type ExpenseCycleTuple;
 		typedef Wt::Dbo::collection<ExpenseCycleTuple> ExpenseTupleCollection;
 
-		void createSelfEntityAndAccount(bool scheduleNext);
+		//void createSelfEntityAndAccount(bool scheduleNext);
+		void recalculateAccountBalances(bool scheduleNext);
 		void createPendingCycleEntries(bool scheduleNext);
+		void _createPendingCycleEntries(bool scheduleNext, bool returnOnStaleException);
 		void checkAbnormalRecords(bool scheduleNext);
 
-		Wt::Dbo::Query<IncomeCycleTuple> _incomeCycleQuery;
-		Wt::Dbo::Query<ExpenseCycleTuple> _expenseCycleQuery;
+		Wt::Dbo::Query<int> _accountCheckAbnormal;
 		Wt::Dbo::Query<Wt::Dbo::ptr<IncomeCycle>> _incomeCycleCheckAbnormal;
 		Wt::Dbo::Query<Wt::Dbo::ptr<ExpenseCycle>> _expenseCycleCheckAbnormal;
 		Wt::Dbo::Query<Wt::Dbo::ptr<AccountEntry>> _entryCheckAbnormal;
+		Wt::Dbo::Query<IncomeCycleTuple> _incomeCycleQuery;
+		Wt::Dbo::Query<ExpenseCycleTuple> _expenseCycleQuery;
+		Wt::Dbo::Call *_recalculateBalanceCall = nullptr;
 
 		Wt::Dbo::Session &dboSession;
 		EntitiesDatabase _entitiesDatabase;

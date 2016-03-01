@@ -10,7 +10,7 @@ namespace GS
 	public:
 		EntitiesDatabase(Wt::Dbo::Session &session) : dboSession(session) { }
 
-		Wt::Dbo::ptr<Entity> findOrCreateSelfEntity(); //MAY FLUSH
+		Wt::Dbo::ptr<Entity> findOrCreateSelfEntity();
 
 	protected:
 		Wt::Dbo::Session &dboSession;

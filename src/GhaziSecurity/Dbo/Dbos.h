@@ -331,17 +331,20 @@ namespace GS
 		std::string name;
 		Type type = InvalidType;
 		Wt::WFlags<SpecificType> specificTypeMask = UnspecificType;
+		Wt::Dbo::ptr<Account> balAccountPtr;
+		Wt::Dbo::ptr<Account> pnlAccountPtr;
 
 		Wt::Dbo::weak_ptr<Person> personWPtr;
 		Wt::Dbo::weak_ptr<Business> businessWPtr;
 		Wt::Dbo::weak_ptr<Business> clientWPtr;
 		Wt::Dbo::weak_ptr<Business> supplierWPtr;
-		Wt::Dbo::weak_ptr<Account> accountWPtr;
 		ContactNumberCollection contactNumberCollection;
 		InquiryCollection inquiryCollection;
 		RentHouseCollection owningRentHouseCollection;
 		LocationCollection locationCollection;
 		UploadedFileCollection uploadedFileCollection;
+		IncomeCycleCollection incomeCycleCollection;
+		ExpenseCycleCollection expenseCycleCollection;
 
 		template<class Action>
 		void persist(Action& a)
@@ -349,17 +352,20 @@ namespace GS
 			Wt::Dbo::field(a, name, "name", 70);
 			Wt::Dbo::field(a, type, "type");
 			Wt::Dbo::field(a, specificTypeMask, "specificTypeMask");
+			Wt::Dbo::belongsTo(a, balAccountPtr, "bal_account", Wt::Dbo::OnDeleteCascade | Wt::Dbo::OnUpdateCascade);
+			Wt::Dbo::belongsTo(a, pnlAccountPtr, "pnl_account", Wt::Dbo::OnDeleteCascade | Wt::Dbo::OnUpdateCascade);
 
 			Wt::Dbo::hasOne(a, personWPtr, "entity");
 			Wt::Dbo::hasOne(a, businessWPtr, "entity");
 			Wt::Dbo::hasOne(a, clientWPtr, "entity");
 			Wt::Dbo::hasOne(a, supplierWPtr, "entity");
-			Wt::Dbo::hasOne(a, accountWPtr, "entity");
 			Wt::Dbo::hasMany(a, contactNumberCollection, Wt::Dbo::ManyToOne, "entity");
 			Wt::Dbo::hasMany(a, inquiryCollection, Wt::Dbo::ManyToOne, "entity");
 			Wt::Dbo::hasMany(a, owningRentHouseCollection, Wt::Dbo::ManyToOne, "owner_entity");
 			Wt::Dbo::hasMany(a, locationCollection, Wt::Dbo::ManyToOne, "entity");
 			Wt::Dbo::hasMany(a, uploadedFileCollection, Wt::Dbo::ManyToOne, "entity");
+			Wt::Dbo::hasMany(a, incomeCycleCollection, Wt::Dbo::ManyToOne, "entity");
+			Wt::Dbo::hasMany(a, expenseCycleCollection, Wt::Dbo::ManyToOne, "entity");
 		}
 		constexpr static const char *tableName()
 		{
@@ -516,7 +522,6 @@ namespace GS
 	{
 	public:
 		std::string title;
-
 		ExpenseCycleCollection expenseCycleCollection;
 
 		template<class Action>
@@ -535,7 +540,6 @@ namespace GS
 	{
 	public:
 		std::string title;
-
 		IncomeCycleCollection incomeCycleCollection;
 
 		template<class Action>
@@ -1103,32 +1107,63 @@ namespace GS
 	class Account
 	{
 	public:
+		enum Type
+		{
+			Unspecified = 0,
+			EntityBalanceAccount = 1,
+			EntityPnlAccount = 2
+		};
+
+		Account() = default;
+		Account(Type t) : type(t) { }
+
 		std::string name;
-		Wt::Dbo::ptr<Entity> entityPtr;
+		Type type = Unspecified;
+		double balance() const { return _balance; }
 
 		AccountEntryCollection debitEntryCollection;
 		AccountEntryCollection creditEntryCollection;
-		IncomeCycleCollection incomeCycleCollection;
-		ExpenseCycleCollection expenseCycleCollection;
+		Wt::Dbo::weak_ptr<Entity> balOfEntityWPtr;
+		Wt::Dbo::weak_ptr<Entity> pnlOfEntityWPtr;
 
 		template<class Action>
 		void persist(Action& a)
 		{
 			Wt::Dbo::field(a, name, "name", 70);
-			Wt::Dbo::belongsTo(a, entityPtr, "entity", Wt::Dbo::OnDeleteCascade | Wt::Dbo::OnUpdateCascade);
+			Wt::Dbo::field(a, type, "type");
+			Wt::Dbo::field(a, _balance, "balance");
 
 			Wt::Dbo::hasMany(a, debitEntryCollection, Wt::Dbo::ManyToOne, "debit_account");
 			Wt::Dbo::hasMany(a, creditEntryCollection, Wt::Dbo::ManyToOne, "credit_account");
-			Wt::Dbo::hasMany(a, incomeCycleCollection, Wt::Dbo::ManyToOne, "account");
-			Wt::Dbo::hasMany(a, expenseCycleCollection, Wt::Dbo::ManyToOne, "account");
+			Wt::Dbo::hasOne(a, balOfEntityWPtr, "bal_account");
+			Wt::Dbo::hasOne(a, pnlOfEntityWPtr, "pnl_account");
 		}
 		constexpr static const char *tableName()
 		{
 			return "account";
 		}
+
+	private:
+		double _balance = 0;
+
+		friend class AccountsDatabase;
 	};
+
 	class AccountEntry
 	{
+	private:
+		AccountEntry(double amount, Wt::Dbo::ptr<Account> debitAccountPtr, Wt::Dbo::ptr<Account> creditAccountPtr)
+			: _amount(amount), _debitAccountPtr(debitAccountPtr), _creditAccountPtr(creditAccountPtr)
+		{ }
+		AccountEntry(const AccountEntry &) = default;
+		AccountEntry(AccountEntry &&) = default;
+
+		double _amount = 0;
+		Wt::Dbo::ptr<Account> _debitAccountPtr;
+		Wt::Dbo::ptr<Account> _creditAccountPtr;
+
+		friend class AccountsDatabase;
+
 	public:
 		enum Type
 		{
@@ -1138,10 +1173,11 @@ namespace GS
 			PettyExpenditure = 3
 		};
 
-		Wt::Dbo::ptr<Account> debitAccountPtr;
-		Wt::Dbo::ptr<Account> creditAccountPtr;
+		AccountEntry() = default;
 		Type type = UnspecifiedType;
-		double amount = 0;
+		double amount() const { return _amount; }
+		Wt::Dbo::ptr<Account> debitAccountPtr() const { return _debitAccountPtr; }
+		Wt::Dbo::ptr<Account> creditAccountPtr() const { return _creditAccountPtr; }
 		Wt::WDateTime timestamp = Wt::WDateTime(boost::posix_time::microsec_clock::local_time());
 
 		Wt::Dbo::ptr<RentHouse> depositRentHousePtr;
@@ -1155,10 +1191,10 @@ namespace GS
 		template<class Action>
 		void persist(Action& a)
 		{
-			Wt::Dbo::belongsTo(a, debitAccountPtr, "debit_account", Wt::Dbo::OnDeleteCascade | Wt::Dbo::OnUpdateCascade | Wt::Dbo::NotNull);
-			Wt::Dbo::belongsTo(a, creditAccountPtr, "credit_account", Wt::Dbo::OnDeleteCascade | Wt::Dbo::OnUpdateCascade | Wt::Dbo::NotNull);
+			Wt::Dbo::belongsTo(a, _debitAccountPtr, "debit_account", Wt::Dbo::OnDeleteCascade | Wt::Dbo::OnUpdateCascade | Wt::Dbo::NotNull);
+			Wt::Dbo::belongsTo(a, _creditAccountPtr, "credit_account", Wt::Dbo::OnDeleteCascade | Wt::Dbo::OnUpdateCascade | Wt::Dbo::NotNull);
 			Wt::Dbo::field(a, type, "type");
-			Wt::Dbo::field(a, amount, "amount");
+			Wt::Dbo::field(a, _amount, "amount");
 			Wt::Dbo::field(a, timestamp, "timestamp");
 
 			Wt::Dbo::belongsTo(a, depositRentHousePtr, "deposit_renthouse", Wt::Dbo::OnDeleteCascade | Wt::Dbo::OnUpdateCascade);
@@ -1234,7 +1270,7 @@ namespace GS
 	class EntryCycle
 	{
 	public:
-		Wt::Dbo::ptr<Account> accountPtr;
+		Wt::Dbo::ptr<Entity> entityPtr;
 		Wt::WDate startDate;
 		Wt::WDateTime creationDt = Wt::WDateTime(boost::posix_time::microsec_clock::local_time());
 		Wt::WDate endDate;
@@ -1248,7 +1284,7 @@ namespace GS
 		template<class Action>
 		void persist(Action& a, const std::string &cycleName)
 		{
-			Wt::Dbo::belongsTo(a, accountPtr, "account", Wt::Dbo::OnDeleteCascade | Wt::Dbo::OnUpdateCascade | Wt::Dbo::NotNull);
+			Wt::Dbo::belongsTo(a, entityPtr, "entity", Wt::Dbo::OnDeleteCascade | Wt::Dbo::OnUpdateCascade | Wt::Dbo::NotNull);
 			Wt::Dbo::field(a, startDate, "startDate");
 			Wt::Dbo::field(a, creationDt, "creationDt");
 			Wt::Dbo::field(a, endDate, "endDate");
@@ -1269,15 +1305,15 @@ namespace GS
 			UnspecifiedPurpose = 0,
 			Services = 1
 		};
+// 		Purpose purpose = UnspecifiedPurpose;
 
-		Purpose purpose = UnspecifiedPurpose;
 		Wt::Dbo::ptr<ClientService> servicePtr;
 
 		template<class Action>
 		void persist(Action& a)
 		{
 			EntryCycle::persist(a, "incomecycle");
-			Wt::Dbo::field(a, purpose, "purpose");
+			//Wt::Dbo::field(a, purpose, "purpose");
 			Wt::Dbo::belongsTo(a, servicePtr, "clientservice", Wt::Dbo::OnDeleteCascade | Wt::Dbo::OnUpdateCascade);
 		}
 		constexpr static const char *tableName()
@@ -1294,8 +1330,8 @@ namespace GS
 			UnspecifiedPurpose = 0,
 			Salary = 1
 		};
-
-		Purpose purpose = UnspecifiedPurpose;
+// 		Purpose purpose = UnspecifiedPurpose;
+	
 		Wt::Dbo::ptr<EmployeePosition> positionPtr;
 		Wt::Dbo::weak_ptr<RentHouse> rentHouseWPtr;
 
@@ -1303,7 +1339,7 @@ namespace GS
 		void persist(Action& a)
 		{
 			EntryCycle::persist(a, "expensecycle");
-			Wt::Dbo::field(a, purpose, "purpose");
+			//Wt::Dbo::field(a, purpose, "purpose");
 			Wt::Dbo::belongsTo(a, positionPtr, "employeeposition", Wt::Dbo::OnDeleteCascade | Wt::Dbo::OnUpdateCascade);
 			Wt::Dbo::hasOne(a, rentHouseWPtr, "expensecycle");
 		}
@@ -1360,6 +1396,20 @@ namespace Wt
 			{
 			case Entity::PersonType: return Wt::WString::tr("GS.Person");
 			case Entity::BusinessType: return Wt::WString::tr("GS.Business");
+			default: return Wt::WString::tr("GS.Unknown");
+			}
+		}
+	};
+
+	template<>
+	struct boost_any_traits<Account::Type> : public boost_any_traits<int>
+	{
+		static Wt::WString asString(const Account::Type &value, const Wt::WString &format)
+		{
+			switch(value)
+			{
+			case Account::EntityBalanceAccount: return Wt::WString::tr("GS.EntityBalanceAccount");
+			case Account::EntityPnlAccount: return Wt::WString::tr("GS.EntityPnlAccount");
 			default: return Wt::WString::tr("GS.Unknown");
 			}
 		}

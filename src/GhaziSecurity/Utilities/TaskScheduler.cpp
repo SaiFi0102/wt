@@ -15,6 +15,22 @@ namespace GS
 	TaskScheduler::TaskScheduler(WServer *server, Wt::Dbo::Session &session)
 		: _server(server), dboSession(session), _entitiesDatabase(dboSession), _accountsDatabase(dboSession)
 	{
+		//Recalculate balance update query
+		{
+			Wt::Dbo::Transaction t(dboSession);
+			_recalculateBalanceCall = new Wt::Dbo::Call(dboSession.execute("UPDATE " + std::string(Account::tableName()) + " acc SET balance = "
+				"(SELECT SUM(dE.amount) FROM " + AccountEntry::tableName() + " dE WHERE dE.debit_account_id = acc.id) - (SELECT SUM(cE.amount) FROM " + AccountEntry::tableName() + " cE WHERE cE.credit_account_id = acc.id)"
+				", \"version\" = \"version\" + 1"));
+			t.rollback();
+		}
+
+		//Abnormal account check query
+		{
+			_accountCheckAbnormal = dboSession.query<int>("SELECT count(*) FROM " + std::string(Account::tableName()) + " acc "
+				"INNER JOIN " + Entity::tableName() + " balE ON (balE.bal_account_id = acc.id) "
+				"INNER JOIN " + Entity::tableName() + " pnlE ON (pnlE.pnl_account_id = acc.id)");
+		}
+
 		//Abnormal entry check query
 		{
 			_entryCheckAbnormal = dboSession.find<AccountEntry>().where("timestamp IS null OR amount < 0");
@@ -45,7 +61,8 @@ namespace GS
 		}
 
 		_isConstructing = true;
-		createSelfEntityAndAccount(true);
+		//createSelfEntityAndAccount(true);
+		recalculateAccountBalances(true);
 		checkAbnormalRecords(true);
 		createPendingCycleEntries(true);
 		_isConstructing = false;
@@ -54,34 +71,39 @@ namespace GS
 	TaskScheduler::~TaskScheduler()
 	{ }
 
-	void TaskScheduler::createSelfEntityAndAccount(bool scheduleNext)
+	void TaskScheduler::recalculateAccountBalances(bool scheduleNext)
 	{
+		Wt::Dbo::Transaction t(dboSession);
 		try
 		{
-			_accountsDatabase.findOrCreateSelfAccount();
+			_recalculateBalanceCall->run();
+			t.commit();
 		}
 		catch(const std::exception &e)
 		{
-			Wt::log("error") << "TaskScheduler::createSelfEntityAndAccount(): Error: " << e.what();
+			Wt::log("error") << "TaskScheduler::recalculateAccountBalances(): Error: " << e.what();
 			if(_isConstructing)
 				throw e;
 		}
 
-		//Repeat every 24 hours
+		//Repeat
 		if(scheduleNext)
 			_server->ioService().schedule(static_cast<int>(boost::posix_time::hours(24).total_milliseconds()),
-				boost::bind(&TaskScheduler::createSelfEntityAndAccount, this, true));
+				boost::bind(&TaskScheduler::recalculateAccountBalances, this, true));
 	}
 
 	void TaskScheduler::createPendingCycleEntries(bool scheduleNext)
+	{
+		_createPendingCycleEntries(scheduleNext, false); //false means not to return if StaleObjectException is caught for the first time
+	}
+
+	void TaskScheduler::_createPendingCycleEntries(bool scheduleNext, bool returnOnStaleException)
 	{
 		Wt::Dbo::Transaction t(dboSession);
 		boost::posix_time::time_duration nextEntryDuration = boost::posix_time::hours(6);
 
 		try
 		{
-			Wt::Dbo::ptr<Account> accountSelf = _accountsDatabase.findOrCreateSelfAccount();
-
 			auto currentPTime = boost::posix_time::microsec_clock::local_time();
 			Wt::WDateTime currentDt(currentPTime);
 
@@ -96,7 +118,7 @@ namespace GS
 				Wt::Dbo::ptr<AccountEntry> lastEntryPtr;
 				boost::tie(cyclePtr, lastEntryPtr) = tuple;
 
-				_accountsDatabase.createPendingCycleEntry(cyclePtr, lastEntryPtr, currentPTime, accountSelf, &nextEntryDuration);
+				_accountsDatabase.createPendingCycleEntry(cyclePtr, lastEntryPtr, currentPTime, &nextEntryDuration);
 			}
 
 			//Expense cycle
@@ -110,10 +132,22 @@ namespace GS
 				Wt::Dbo::ptr<AccountEntry> lastEntryPtr;
 				boost::tie(cyclePtr, lastEntryPtr) = tuple;
 
-				_accountsDatabase.createPendingCycleEntry(cyclePtr, lastEntryPtr, currentPTime, accountSelf, &nextEntryDuration);
+				_accountsDatabase.createPendingCycleEntry(cyclePtr, lastEntryPtr, currentPTime, &nextEntryDuration);
 			}
 
 			t.commit();
+		}
+		catch(const Wt::Dbo::StaleObjectException &)
+		{
+			if(returnOnStaleException)
+			{
+				Wt::log("warn") << "TaskScheduler::createPendingCycleEntries(): StaleObjectException caught and returnOnStaleException was true";
+				return;
+			}
+
+			dboSession.rereadAll();
+			_createPendingCycleEntries(scheduleNext, true); //true means Do not loop again if StaleObjectException is caught again
+			return;
 		}
 		catch(const std::exception &e)
 		{
@@ -133,6 +167,11 @@ namespace GS
 		Wt::Dbo::Transaction t(dboSession);
 		try
 		{
+			{
+				int abnormalRecords = _accountCheckAbnormal;
+				if(abnormalRecords > 0)
+					Wt::log("warn") << abnormalRecords << " abnormal Account records were found";
+			}
 			{
 				AccountEntryCollection collection = _entryCheckAbnormal;
 				int abnormalRecords = collection.size();
@@ -165,5 +204,24 @@ namespace GS
 			_server->ioService().schedule(static_cast<int>(boost::posix_time::hours(24).total_milliseconds()),
 				boost::bind(&TaskScheduler::createPendingCycleEntries, this, true));
 	}
+
+// 	void TaskScheduler::createSelfEntityAndAccount(bool scheduleNext)
+// 	{
+// 		try
+// 		{
+// 			_accountsDatabase.findOrCreateSelfAccount();
+// 		}
+// 		catch(const std::exception &e)
+// 		{
+// 			Wt::log("error") << "TaskScheduler::createSelfEntityAndAccount(): Error: " << e.what();
+// 			if(_isConstructing)
+// 				throw e;
+// 		}
+// 
+// 		//Repeat every 24 hours
+// 		if(scheduleNext)
+// 			_server->ioService().schedule(static_cast<int>(boost::posix_time::hours(24).total_milliseconds()),
+// 				boost::bind(&TaskScheduler::createSelfEntityAndAccount, this, true));
+// 	}
 
 }

@@ -58,7 +58,7 @@ ${content}
 </div>
 </message>-->
 
-<message id="GS.Admin.Entities.List.Filter">
+<message id="GS.ListFilterView">
 <div class="input-group">
 	<span class="input-group-addon">${title}</span>
 	${widget}
@@ -66,7 +66,17 @@ ${content}
 </div>
 </message>
 
-<message id="GS.Admin.Entities.List">
+<message id="GS.ListRangeFilterView">
+<div class="input-group">
+	<span class="input-group-addon">${title}</span>
+	${operatorCombo}
+	<span class="input-group-addon"></span>
+	${widget}
+	<span class="input-group-addon">${checkbox}</span>
+</div>
+</message>
+
+<message id="GS.FilteredListView">
 <div class="panel panel-default panel-filters">
 	<div class="panel-heading"><h3 class="panel-title">Filter</h3></div>
 	<div class="panel-body">
@@ -494,5 +504,4 @@ ${</type-chosen>}
 	${image}
 </label>
 </message>
-
 </messages>

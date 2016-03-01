@@ -68,17 +68,6 @@ namespace GS
 		t.commit();
 	}
 
-	Wt::Dbo::ptr<Account> EntityFormModel::entityAccountPtr()
-	{
-		if(_entityAccountPtr)
-			return _entityAccountPtr;
-
-		if(!entityPtr())
-			return Wt::Dbo::ptr<Account>();
-
-		return _entityAccountPtr = entityPtr()->accountWPtr;
-	}
-
 	//PERSON MODEL
 	const Wt::WFormModel::Field PersonFormModel::dobField = "dob";
 	const Wt::WFormModel::Field PersonFormModel::cnicField = "cnic";
@@ -569,13 +558,13 @@ namespace GS
 	//EXPENSE CYCLES MANAGER MODEL
 	const Wt::WFormModel::Field ExpenseCyclesManagerModel::field = "expenseCycles";
 
-	ExpenseCyclesManagerModel::ExpenseCyclesManagerModel(EntityView *view, Wt::Dbo::ptr<Account> entityAccountPtr)
+	ExpenseCyclesManagerModel::ExpenseCyclesManagerModel(EntityView *view)
 		: Wt::WFormModel(view), _view(view)
 	{
 		addField(field);
 
-		if(entityAccountPtr)
-			setValue(field, PtrVector(entityAccountPtr->expenseCycleCollection.begin(), entityAccountPtr->expenseCycleCollection.end()));
+		if(_view->entityPtr())
+			setValue(field, PtrVector(_view->entityPtr()->expenseCycleCollection.begin(), _view->entityPtr()->expenseCycleCollection.end()));
 		else
 			setValue(field, PtrVector());
 	}
@@ -663,13 +652,13 @@ namespace GS
 	//INCOME CYCLES MANAGER MODEL
 	const Wt::WFormModel::Field IncomeCyclesManagerModel::field = "incomeCycles";
 
-	IncomeCyclesManagerModel::IncomeCyclesManagerModel(EntityView *view, Wt::Dbo::ptr<Account> entityAccountPtr)
+	IncomeCyclesManagerModel::IncomeCyclesManagerModel(EntityView *view)
 		: Wt::WFormModel(view), _view(view)
 	{
 		addField(field);
 
-		if(entityAccountPtr)
-			setValue(field, PtrVector(entityAccountPtr->incomeCycleCollection.begin(), entityAccountPtr->incomeCycleCollection.end()));
+		if(_view->entityPtr())
+			setValue(field, PtrVector(_view->entityPtr()->incomeCycleCollection.begin(), _view->entityPtr()->incomeCycleCollection.end()));
 		else
 			setValue(field, PtrVector());
 	}
@@ -879,10 +868,8 @@ namespace GS
 
 		_contactNumbersModel = new ContactNumbersManagerModel(this);
 		_locationsModel = new LocationsManagerModel(this);
-
-		Wt::Dbo::ptr<Account> accountPtr = _entityModel->entityAccountPtr();
-		_expenseCyclesModel = new ExpenseCyclesManagerModel(this, accountPtr);
-		_incomeCyclesModel = new IncomeCyclesManagerModel(this, accountPtr);
+		_expenseCyclesModel = new ExpenseCyclesManagerModel(this);
+		_incomeCyclesModel = new IncomeCyclesManagerModel(this);
 
 		_addEmployee = new Wt::WPushButton(tr("GS.AddEmployeeLabel"));
 		_addEmployee->clicked().connect(boost::bind(&EntityView::setSpecificType, this, Entity::EmployeeType));

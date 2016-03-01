@@ -17,7 +17,6 @@
 namespace GS
 {
 
-
 WServer::WServer(const std::string& wtApplicationPath, const std::string& wtConfigurationFile)
 	: Wt::WServer(wtApplicationPath, wtConfigurationFile), _passwordService(_authService)
 {
@@ -163,6 +162,7 @@ void WServer::initialize()
 
 	//Register boost::any traits
 	Wt::registerType<Entity::Type>();
+	Wt::registerType<Account::Type>();
 	Wt::registerType<Wt::WFlags<Entity::SpecificType>>();
 	Wt::registerType<Wt::Dbo::ptr<Entity>>();
 

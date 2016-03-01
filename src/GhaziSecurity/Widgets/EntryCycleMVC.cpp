@@ -271,7 +271,7 @@ namespace GS
 		{
 			setValue(startDateField, cyclePtr->startDate);
 			setValue(endDateField, cyclePtr->endDate);
-			setValue(purposeField, (int)cyclePtr->purpose);
+			setValue(purposeField, (int)(cyclePtr->positionPtr ? ExpenseCycle::Salary : ExpenseCycle::UnspecifiedPurpose));
 			setValue(positionField, cyclePtr->positionPtr);
 			setValue(intervalField, (int)cyclePtr->interval);
 			setValue(nIntervalsField, cyclePtr->nIntervals);
@@ -288,7 +288,6 @@ namespace GS
 		WApplication *app = WApplication::instance();
 		Wt::Dbo::Transaction t(app->session());
 
-		Wt::Dbo::ptr<Account> accountPtr = app->accountsDatabase().findOrCreateEntityAccount(entityPtr);
 		bool newCycle = false;
 
 		if(inputCyclePtr)
@@ -302,10 +301,8 @@ namespace GS
 			}
 		}
 
-		_cyclePtr.modify()->accountPtr = accountPtr;
 		_cyclePtr.modify()->startDate = boost::any_cast<Wt::WDate>(value(startDateField));
 		_cyclePtr.modify()->endDate = boost::any_cast<Wt::WDate>(value(endDateField));
-		_cyclePtr.modify()->purpose = ExpenseCycle::Purpose(boost::any_cast<int>(value(purposeField)));
 		_cyclePtr.modify()->interval = CycleInterval(boost::any_cast<int>(value(intervalField)));
 		_cyclePtr.modify()->nIntervals = boost::lexical_cast<int>(valueText(nIntervalsField).toUTF8());
 		_cyclePtr.modify()->amount = boost::lexical_cast<double>(valueText(amountField).toUTF8());
@@ -317,7 +314,8 @@ namespace GS
 		else
 			_cyclePtr.modify()->positionPtr = boost::any_cast<Wt::Dbo::ptr<EmployeePosition>>(positionVal);
 
-		app->accountsDatabase().createPendingCycleEntry(_cyclePtr, Wt::Dbo::ptr<AccountEntry>(), boost::posix_time::microsec_clock::local_time());
+		if(newCycle && _cyclePtr->firstEntryAfterCycle == false)
+			app->accountsDatabase().createPendingCycleEntry(_cyclePtr, Wt::Dbo::ptr<AccountEntry>(), boost::posix_time::microsec_clock::local_time());
 
 		t.commit();
 
@@ -431,7 +429,7 @@ namespace GS
 		{
 			setValue(startDateField, cyclePtr->startDate);
 			setValue(endDateField, cyclePtr->endDate);
-			setValue(purposeField, (int)cyclePtr->purpose);
+			setValue(purposeField, (int)(cyclePtr->servicePtr ? IncomeCycle::Services : IncomeCycle::UnspecifiedPurpose));
 			setValue(serviceField, cyclePtr->servicePtr);
 			setValue(intervalField, (int)cyclePtr->interval);
 			setValue(nIntervalsField, cyclePtr->nIntervals);
@@ -448,9 +446,7 @@ namespace GS
 		WApplication *app = WApplication::instance();
 		Wt::Dbo::Transaction t(app->session());
 
-		Wt::Dbo::ptr<Account> accountPtr = app->accountsDatabase().findOrCreateEntityAccount(entityPtr);
 		bool newCycle = false;
-
 		if(inputCyclePtr)
 			_cyclePtr = inputCyclePtr;
 		else
@@ -462,10 +458,8 @@ namespace GS
 			}
 		}
 
-		_cyclePtr.modify()->accountPtr = accountPtr;
 		_cyclePtr.modify()->startDate = boost::any_cast<Wt::WDate>(value(startDateField));
 		_cyclePtr.modify()->endDate = boost::any_cast<Wt::WDate>(value(endDateField));
-		_cyclePtr.modify()->purpose = IncomeCycle::Purpose(boost::any_cast<int>(value(purposeField)));
 		_cyclePtr.modify()->interval = CycleInterval(boost::any_cast<int>(value(intervalField)));
 		_cyclePtr.modify()->nIntervals = boost::lexical_cast<int>(valueText(nIntervalsField).toUTF8());
 		_cyclePtr.modify()->amount = boost::lexical_cast<double>(valueText(amountField).toUTF8());
@@ -477,7 +471,8 @@ namespace GS
 		else
 			_cyclePtr.modify()->servicePtr = boost::any_cast<Wt::Dbo::ptr<ClientService>>(serviceVal);
 
-		app->accountsDatabase().createPendingCycleEntry(_cyclePtr, Wt::Dbo::ptr<AccountEntry>(), boost::posix_time::microsec_clock::local_time());
+		if(newCycle && _cyclePtr->firstEntryAfterCycle == false)
+			app->accountsDatabase().createPendingCycleEntry(_cyclePtr, Wt::Dbo::ptr<AccountEntry>(), boost::posix_time::microsec_clock::local_time());
 
 		t.commit();
 

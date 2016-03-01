@@ -196,8 +196,7 @@ void WApplication::lazyLoadAdminWidgets()
 
 	//Admin page widgets
 	//Dashboard
-	AdminPageWidget *dashboardTemplate = new AdminPageWidget();
-	dashboardTemplate->menu()->setInternalPathEnabled("/admin/");
+	AdminPageWidget *dashboardTemplate = new AdminPageWidget("");
 
 	auto overviewMenuItem = new Wt::WMenuItem(Wt::WString::tr("GS.Overview"), new Wt::WText(Wt::WString::tr("GS.Admin.OverviewPage")));
 	overviewMenuItem->setPathComponent("");
@@ -209,8 +208,13 @@ void WApplication::lazyLoadAdminWidgets()
 
 	//Entites
 	auto entitiesMenuItem = new Wt::WMenuItem(Wt::WString::tr("GS.Entities"), _entitiesAdminPage = new EntitiesAdminPage());
-	entitiesMenuItem->setPathComponent("entities");
+	entitiesMenuItem->setPathComponent(_entitiesAdminPage->basePathComponent());
 	_adminMenu->addItem(entitiesMenuItem);
+
+	//Entites
+	auto accountsMenuItem = new Wt::WMenuItem(Wt::WString::tr("GS.FinancialRecords"), _accountsAdminPage = new AccountsAdminPage());
+	accountsMenuItem->setPathComponent(_accountsAdminPage->basePathComponent());
+	_adminMenu->addItem(accountsMenuItem);
 }
 
 void WApplication::initFindPersonModel()

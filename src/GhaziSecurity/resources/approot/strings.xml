@@ -159,6 +159,18 @@
 <message id="GS.UnspecificPurpose">Unspecific purpose</message>
 <message id="GS.Salary">Salary</message>
 
+<message id="GS.FinancialRecords">Financial Records</message>
+<message id="GS.Accounts">Accounts</message>
+<message id="GS.EntityBalanceAccount">Entity Balance</message>
+<message id="GS.EntityPnlAccount">Entity Income and Expense</message>
+<message id="GS.Balance">Balance</message>
+<message id="GS.Debit">Debit</message>
+<message id="GS.Credit">Credit</message>
+<message id="GS.Profit">Profit</message>
+<message id="GS.Loss">Loss</message>
+<message id="GS.Receivable">Receivable</message>
+<message id="GS.Payable">Payable</message>
+
 <message id="GS.StartingDate">Starting date</message>
 <message id="GS.OnStartingDate">On the starting date</message>
 <message id="GS.EndDate">End date</message>
@@ -185,10 +197,5 @@
 	<plural case="0">After {1} year</plural>
 	<plural case="1">After {1} years</plural>
 </message>
-
-</messages>
-
-<messages>
-
 
 </messages>
