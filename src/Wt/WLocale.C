@@ -1,5 +1,6 @@
 #include "Wt/WApplication"
 #include "Wt/WLocale"
+#include "Wt/Payment/Money"
 
 #include "WebUtils.h"
 #include <boost/lexical_cast.hpp>
@@ -118,6 +119,21 @@ double WLocale::toDouble(const WT_USTRING& value) const
   return boost::lexical_cast<double>(v);
 }
 
+float WLocale::toFloat(const WT_USTRING& value) const
+{
+  if (isDefaultNumberLocale())
+    return boost::lexical_cast<float>(value);
+
+  std::string v = value.toUTF8();
+
+  if (!groupSeparator_.empty())
+    Utils::replace(v, groupSeparator_, "");
+  if (decimalPoint_ != ".")
+    Utils::replace(v, decimalPoint_, ".");
+
+  return boost::lexical_cast<float>(v);
+}
+
 int WLocale::toInt(const WT_USTRING& value) const
 {
   if (groupSeparator_.empty())
@@ -128,6 +144,18 @@ int WLocale::toInt(const WT_USTRING& value) const
   Utils::replace(v, groupSeparator_, "");
 
   return boost::lexical_cast<int>(v);
+}
+
+long long WLocale::toLong(const WT_USTRING& value) const
+{
+	if(groupSeparator_.empty())
+		return boost::lexical_cast<long long>(value);
+
+	std::string v = value.toUTF8();
+
+	Utils::replace(v, groupSeparator_, "");
+
+	return boost::lexical_cast<long long>(v);
 }
 
 #ifndef DOXYGEN_ONLY
@@ -150,6 +178,12 @@ WT_USTRING WLocale::toString(::uint64_t value) const
 {
   return integerToString(boost::lexical_cast<std::string>(value));
 }
+
+WT_USTRING WLocale::toString(const Wt::Payment::Money &value) const
+{
+	return doubleToString(value.toString());
+}
+
 #endif // DOXYGEN_ONLY
 
 WT_USTRING WLocale::integerToString(const std::string& v) const

@@ -127,7 +127,8 @@ WApplication::WApplication(const WEnvironment& env
     showLoadingIndicator_("showload", this),
     hideLoadingIndicator_("hideload", this),
     unloaded_(this, "Wt-unload"),
-    soundManager_(0)
+	soundManager_(0),
+	oldInternalPath_("/")
 {
   session_->setApplication(this);
   locale_ = environment().locale();
@@ -1262,6 +1263,11 @@ std::string WApplication::internalPath() const
   return Utils::prepend(newInternalPath_, '/');
 }
 
+std::string WApplication::oldInternalPath() const
+{
+  return Utils::prepend(oldInternalPath_, '/');
+}
+
 void WApplication::setInternalPath(const std::string& path, bool emitChange)
 {
   enableInternalPaths();
@@ -1269,7 +1275,10 @@ void WApplication::setInternalPath(const std::string& path, bool emitChange)
   if (!session_->renderer().preLearning() && emitChange)
     changeInternalPath(path);
   else
-    newInternalPath_ = path;
+  {
+	  if(path != newInternalPath_) oldInternalPath_ = newInternalPath_;
+	  newInternalPath_ = path;
+  }
 
   internalPathValid_ = true;
   internalPathIsChanged_ = true;
@@ -1290,6 +1299,7 @@ bool WApplication::changeInternalPath(const std::string& aPath)
   std::string path = Utils::prepend(aPath, '/');
 
   if (path != internalPath()) {
+	oldInternalPath_ = newInternalPath_;
     renderedInternalPath_ = newInternalPath_ = path;
     internalPathValid_ = internalPathDefaultValid_;
     internalPathChanged_.emit(newInternalPath_);

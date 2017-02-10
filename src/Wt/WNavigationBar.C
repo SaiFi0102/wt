@@ -75,6 +75,19 @@ void WNavigationBar::setTitle(const WString& title, const WLink& link)
   titleLink->setLink(link);
 }
 
+void WNavigationBar::setTitle(WImage* image, const WLink& link)
+{
+  WAnchor *titleLink = resolve<WAnchor *>("title-link");
+
+  if (!titleLink) {
+    bindWidget("title-link", titleLink = new WAnchor());
+    wApp->theme()->apply(this, titleLink, NavBrandRole);
+  }
+  
+  titleLink->setImage(image);
+  titleLink->setLink(link);
+}
+
 void WNavigationBar::setResponsive(bool responsive)
 {
   NavContainer *contents = resolve<NavContainer *>("contents");
@@ -115,10 +128,13 @@ void WNavigationBar::setResponsive(bool responsive)
   }
 }
 
-void WNavigationBar::addMenu(WMenu *menu, AlignmentFlag alignment)
+void WNavigationBar::addMenu(WMenu *menu, AlignmentFlag alignment, bool stacked)
 {
-  addWidget((WWidget *)menu, alignment);  
-  wApp->theme()->apply(this, menu, NavbarMenuRole);
+  addWidget((WWidget *)menu, alignment, stacked);  
+  if(stacked)
+	wApp->theme()->apply(this, menu, NavbarStackedMenuRole);
+  else
+	wApp->theme()->apply(this, menu, NavbarMenuRole);
 }
 
 void WNavigationBar::addFormField(WWidget *widget, AlignmentFlag alignment)
@@ -126,10 +142,10 @@ void WNavigationBar::addFormField(WWidget *widget, AlignmentFlag alignment)
   addWidget(widget, alignment);
 }
 
-void WNavigationBar::addWidget(WWidget *widget, AlignmentFlag alignment)
+void WNavigationBar::addWidget(WWidget *widget, AlignmentFlag alignment, bool doNotAlign)
 {
   if (dynamic_cast<WMenu *>(widget)) {
-    align(widget, alignment);
+    if(!doNotAlign) align(widget, alignment);
 
     WContainerWidget *contents = resolve<WContainerWidget *>("contents");
     contents->addWidget(widget);

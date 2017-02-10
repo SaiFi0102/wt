@@ -35,6 +35,8 @@ public:
    */
   void setTitle(const WString& title, const WLink& link = WLink());
 
+  void setTitle(WImage* image, const WLink& link = WLink());
+
   /*! \brief Sets whether the navigation bar will respond to screen size.
    *
    * For screens that are less wide, the navigation bar can be
@@ -52,7 +54,7 @@ public:
    * The menu may be aligned to the left or to the right of the
    * navigation bar.
    */
-  void addMenu(WMenu *menu, AlignmentFlag alignment = AlignLeft);
+  void addMenu(WMenu *menu, AlignmentFlag alignment = AlignLeft, bool stacked = false);
 
   /*! \brief Adds a form field to the navigation bar.
    *
@@ -74,7 +76,7 @@ public:
    * Any other widget may be added to the navigation bar, although they may
    * require special CSS style to blend well with the navigation bar style.
    */
-  void addWidget(WWidget *widget, AlignmentFlag alignment = AlignLeft);
+  void addWidget(WWidget *widget, AlignmentFlag alignment = AlignLeft, bool doNotAlign = false);
 
 protected:
   WInteractWidget *createCollapseButton();

@@ -13,6 +13,8 @@
 #include "Wt/WContainerWidget"
 #include "Wt/WLogger"
 #include "Wt/WTemplate"
+#include "Wt/WCompositeWidget"
+#include "Wt/WFormWidget"
 
 #include "EscapeOStream.h"
 #include "WebUtils.h"
@@ -77,9 +79,31 @@ bool WTemplate::_id(const std::vector<WString>& args,
     } else
       return false;
   } else {
-    LOG_ERROR("Functions::tr(): expects exactly one argument");
+    LOG_ERROR("Functions::id(): expects exactly one argument");
     return false;
   }
+}
+
+bool WTemplate::_fwId(const std::vector<WString>& args,
+		    std::ostream& result)
+{
+	if(args.size() == 1) {
+		WWidget *w = this->resolveWidget(args[0].toUTF8());
+		if(w) {
+			WCompositeWidget *cw = dynamic_cast<WCompositeWidget *>(w);
+			if(cw && cw->formWidgetImpl())
+				result << cw->formWidgetImpl()->id();
+			else
+				result << w->id();
+			return true;
+		}
+		else
+			return false;
+	}
+	else {
+		LOG_ERROR("Functions::fwId(): expects exactly one argument");
+		return false;
+	}
 }
 
 #ifndef WT_TARGET_JAVA
@@ -105,6 +129,11 @@ bool WTemplate::Functions::id(WTemplate *t, const std::vector<WString>& args,
 			      std::ostream& result)
 {
   return t->_id(args, result);
+}
+
+bool WTemplate::Functions::fwId(WTemplate *t, const std::vector<WString>& args, std::ostream& result)
+{
+  return t->_fwId(args, result);
 }
 
 #else
@@ -164,6 +193,7 @@ WTemplate::WTemplate(WContainerWidget *parent)
     changed_(false),
     widgetIdMode_(SetNoWidgetId)
 {
+	_init();
   plainTextNewLineEscStream_ = new EscapeOStream();
   plainTextNewLineEscStream_->pushEscape(EscapeOStream::PlainTextNewLines);
   setInline(false);
@@ -178,6 +208,7 @@ WTemplate::WTemplate(const WString& text, WContainerWidget *parent)
     changed_(false),
     widgetIdMode_(SetNoWidgetId)
 {
+	_init();
   plainTextNewLineEscStream_ = new EscapeOStream();
   plainTextNewLineEscStream_->pushEscape(EscapeOStream::PlainTextNewLines);
   setInline(false);
@@ -346,8 +377,11 @@ bool WTemplate::resolveFunction(const std::string& name,
     bool ok = i->second.evaluate(this, args, result);
 #endif // WT_TARGET_JAVA
 
-    if (!ok)
-      result << "??" << name << ":??";
+	if(!ok)
+	{
+		LOG_WARN("Could not resolve function" << name);
+		result << "??" << name << ":??";
+	}
 
     return true;
   }
@@ -401,6 +435,7 @@ void WTemplate::handleUnresolvedVariable(const std::string& varName,
                                          const std::vector<WString>& args,
                                          std::ostream& result)
 {
+  LOG_WARN("Could not resolve variable " << varName);
   result << "??" << varName << "??";
 }
 
@@ -718,6 +753,14 @@ std::size_t WTemplate::parseArgs(const std::string& text,
   }
 
   return pos == text.length() ? std::string::npos : pos;
+}
+
+void WTemplate::_init()
+{
+	addFunction("id", &Functions::id);
+	addFunction("tr", &Functions::tr);
+	addFunction("block", &Functions::block);
+	addFunction("fwId", &Functions::fwId);
 }
 
 void WTemplate::format(std::ostream& result, const std::string& s,

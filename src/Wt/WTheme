@@ -53,7 +53,8 @@ enum WidgetThemeRole {
   NavbarMenuRole = 804,
   NavbarBtn = 805,
   NavbarAlignLeftRole = 806,
-  NavbarAlignRightRole = 807
+  NavbarAlignRightRole = 807,
+  NavbarStackedMenuRole = -1000
 };
 
 /*! \brief Enumeration for the role of a css class (for theme support)

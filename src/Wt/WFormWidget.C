@@ -384,6 +384,12 @@ void WFormWidget::setValidator(WValidator *validator)
   }
 }
 
+void WFormWidget::resetValidator()
+{
+	if(validator())
+		setValidator(0);
+}
+
 WValidator::State WFormWidget::validate()
 {
   if (validator()) {
