@@ -1,0 +1,88 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<messages xmlns:if="Wt.WTemplate.conditions">
+
+<!-- Generic -->
+<message id="PL.LinkIcon"><i class="fa fa-external-link"></i></message>
+
+<!-- Field blocks -->
+<message id="Wt.Auth.fieldCB">
+${block:PL.FieldH.Narrow.CB {1} Wt.Auth.{1}}
+</message>
+
+<message id="Wt.Auth.field">
+${block:PL.FieldH.Narrow {1} Wt.Auth.{1}}
+</message>
+
+<message id="Wt.Auth.field2">
+${<if:{1}>}
+<div class="form-group">
+	<label for="${id:{1}}" class="control-label col-sm-3">${{2}}</label>
+	<div class="col-sm-9">
+		${{1}}
+		<div class="help-block">${{1}-info}</div>
+	</div>
+</div>
+${</if:{1}>}
+</message>
+
+<message id="Wt.Auth.field3">
+${<if:{1}>}
+<div class="form-group">
+	<label for="${id:{1}}" class="control-label col-sm-3">${{2}}</label>
+	<div class="col-sm-9">
+		${{1}}
+		<div class="help-block">${{1}-info ${{3} class="btn-link"}</div>
+	</div>
+</div>
+${</if:{1}>}
+</message>
+
+<!-- Main templates -->
+<message id="PL.Main">
+${navigation class="navbar-g"}
+${content}
+</message>
+
+<message id="PL.NavigationBar">
+<div class="container">
+	${collapse-button}
+	<div class="navbar-header">
+		${expand-button}
+		${title-link}
+	</div>
+	${contents}
+</div>
+</message>
+
+<!-- AuthWidget -->
+<message id="Wt.Auth.template.login">
+<div class="container Wt-auth-login gs-auth">
+	<h1 class="text-center">${tr:Wt.Auth.login-form-title}</h1>
+	<p>${tr:Wt.Auth.login-form-info}</p>
+
+	<div class="form-horizontal">
+		${<if:passwords>}
+		${block:Wt.Auth.field2 user-name user-name-label}
+		${block:Wt.Auth.field password}
+		${block:Wt.Auth.fieldCB remember-me}
+		${</if:passwords>}
+
+		${<if:oauth>}
+		<div class="control-group">
+			<div class="controls">
+			  <p>Or login using:</p>
+			  ${icons}
+			</div>
+		</div>
+		${</if:oauth>}
+
+		<div class="form-actions pull-right">
+			<p>${login class="btn-primary"}</p>
+			<p>${lost-password class="btn-link"} ${sep}
+			${register class="btn-link"}</p>
+		</div>
+	</div>
+</div>
+</message>
+
+</messages>

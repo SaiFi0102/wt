@@ -16,8 +16,7 @@ examples/widgetgallery/docroot/resources
 resources/tiny_mce
 test/interactive
 debug/
-
-
+src/Tetrapop/resources/approot/log.txt
 
 
 

@@ -1,0 +1,102 @@
+@import url(https://fonts.googleapis.com/css?family=Yanone+Kaffeesatz:400,700);
+
+body{
+font-family: "Yanone Kaffeesatz","Helvetica Neue",Helvetica,Arial,sans-serif;
+font-size:16px;
+margin-bottom:20px;
+}
+
+@media(min-width: 768px){
+	.navbar-g .navbar-collapse .navbar-left{
+	margin-top:29px;
+	}
+	.navbar-g .nav>li>a {
+	margin:0 10px;
+	}
+}
+
+.navbar-g{
+background-color:transparent;
+border-color:transparent;
+font-weight:700;
+font-size:18px;
+-moz-box-shadow:0 1px 3px 0 #555;
+-webkit-box-shadow:0 1px 3px 0 #555;
+box-shadow:0 1px 3px 0 #555;
+-moz-border-radius:0;
+-webkit-border-radius:0;
+border-radius:0;
+margin:0;
+z-index:2;
+border-bottom:#ddd 1px solid;
+}
+.navbar-g .navbar-brand{
+height:auto;
+padding:15px 30px;
+}
+.navbar-g .navbar-nav>.active>a, .navbar-g .navbar-nav>.active>a:focus, .navbar-g .navbar-nav>.active>a:hover{
+border:#457044 1px solid;
+background:transparent;
+-moz-border-radius:5px;
+-webkit-border-radius:5px;
+border-radius:5px;
+}
+.navbar-g .navbar-nav>li>a {
+color:#333;
+}
+.navbar-g .navbar-nav>li>a:focus, .navbar-g .navbar-nav>li>a:hover, .navbar-g .navbar-nav>.active>a:focus, .navbar-g .navbar-nav>.active>a:hover {
+color:#116320;
+}
+.navbar-g .navbar-nav>.active>a{
+color:#333;
+}
+
+.no-padding{
+padding:0 !important;
+margin:0 !important;
+}
+
+.close{
+font-size: 25px;
+font-weight: bold;
+line-height: 18px;
+color: #000000;
+text-shadow: 0 1px 0 #ffffff;
+opacity: 0.5;
+filter: alpha(opacity=50);
+text-decoration: none;
+padding-left: 5px;
+}
+.close:hover{
+color: #000000;
+text-decoration: none;
+opacity: 0.8;
+filter: alpha(opacity=80);
+cursor:pointer;
+}
+
+.form-horizontal .checkbox-label{
+padding-top:0;
+}
+.help-block{
+margin-bottom:0;
+}
+
+.gs-auth{
+margin-top:80px;
+width:550px;
+}
+.gs-auth h1{
+margin-bottom:40px;
+}
+
+a:hover{
+-webkit-transition: color 0.2s ease-in, background 0.2s ease-in;
+-moz-transition: color 0.2s ease-in, background 0.2s ease-in;
+transition: color 0.2s ease-in, background 0.2s ease-in;
+}
+a{
+-webkit-transition: color 0.2s ease-in, background 0.2s ease-in;
+-moz-transition: color 0.2s ease-in, background 0.2s ease-in;
+transition: color 0.2s ease-in, background 0.2s ease-in;
+}
