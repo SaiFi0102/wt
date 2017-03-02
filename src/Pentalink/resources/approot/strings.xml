@@ -38,6 +38,7 @@
 <message id="Loading...">Loading...</message>
 <message id="Hostname">Hostname</message>
 <message id="AddNewX">Add new {1}</message>
+<message id="Create">Create</message>
 
 <!-- Date time related -->
 <message id="Date">Date</message>
@@ -56,5 +57,13 @@
 
 <!-- Pages -->
 <message id="Home">Home</message>
+
+<!-- Match Finder -->
+<message id="Matches">Matches</message>
+<message id="OnlinePlayers">Online Players</message>
+<message id="CreateMatch">Create Match</message>
+<message id="Players">Players</message>
+<message id="Mode">Mode</message>
+<message id="Leave">Leave</message>
 
 </messages>

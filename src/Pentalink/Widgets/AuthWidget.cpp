@@ -12,8 +12,25 @@ namespace PL
 
 		model()->addPasswordAuth(&server->getPasswordService());
 		model()->addOAuth(server->getOAuthServices());
-		setRegistrationEnabled(false);
+		setRegistrationEnabled(true);
 		processEnvironment();
+	}
+
+	Wt::WDialog *AuthWidget::showDialog(const Wt::WString &title, Wt::WWidget *contents)
+	{
+		Wt::WDialog *d = Wt::Auth::AuthWidget::showDialog(title, contents);
+		d->resize(Wt::WLength(70, Wt::WLength::Percentage), Wt::WLength::Auto);
+		d->setMaximumSize(Wt::WLength::Auto, Wt::WLength(90, Wt::WLength::Percentage));
+		d->contents()->setOverflow(Wt::WContainerWidget::OverflowAuto);
+		d->setClosable(true);
+		return d;
+	}
+
+	Wt::Auth::RegistrationModel *AuthWidget::createRegistrationModel()
+	{
+		Wt::Auth::RegistrationModel *m = Wt::Auth::AuthWidget::createRegistrationModel();
+		m->setEmailPolicy(Wt::Auth::RegistrationModel::EmailOptional);
+		return m;
 	}
 
 }

@@ -1,1 +1,1 @@
---docroot "D:/Programming/Pentalink/src/Pentalink/resources/docroot;/images,/resources,style.css" --approot "D:/Programming/Pentalink/src/Pentalink/resources/approot" --http-address 0.0.0.0 --http-port 8080 --accesslog="access.log"
+--docroot "D:/Programming/Pentalink/src/Pentalink/resources/docroot" --approot "D:/Programming/Pentalink/src/Pentalink/resources/approot" --http-address 0.0.0.0 --http-port 8080 --deplay-path="/pl" --accesslog="access.log"

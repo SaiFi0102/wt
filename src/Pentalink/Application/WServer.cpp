@@ -1,4 +1,5 @@
 #include "Application/WServer.h"
+#include "Application/MatchServer.h"
 #include "Dbo/Dbos.h"
 
 #include <Wt/WMessageResourceBundle>
@@ -88,6 +89,9 @@ void WServer::initialize()
 	_dboSession.setConnectionPool(*_sqlPool);
 	mapDboTree(_dboSession);
 
+	//Game Servers
+	_matchMakingServer = new MatchMakingServer(_dboSession);
+
 	//Configure authorization module
 	configureAuth();
 
@@ -157,6 +161,7 @@ WServer::~WServer()
 	for(OAuthServiceMap::size_type i = 0; i < _oAuthServices.size(); ++i)
 		delete _oAuthServices[i];
 
+	delete _matchMakingServer;
 	delete _sqlPool; //Also deletes SQLConnections
 	delete localizedStrings();
 }
@@ -179,7 +184,7 @@ bool WServer::start()
 void WServer::configureAuth()
 {
 	_authService.setAuthTokensEnabled(true, "authtoken");
-	_authService.setAuthTokenValidity(24 * 60);
+	_authService.setAuthTokenValidity(7 * 24 * 60);
 	_authService.setIdentityPolicy(Wt::Auth::LoginNameIdentity);
 	_authService.setEmailVerificationEnabled(false);
 
@@ -191,7 +196,7 @@ void WServer::configureAuth()
 
 	//Password strength
 	Wt::Auth::PasswordStrengthValidator *strengthValidator = new Wt::Auth::PasswordStrengthValidator();
-	strengthValidator->setMinimumLength(Wt::Auth::PasswordStrengthValidator::OneCharClass, 6);
+	strengthValidator->setMinimumLength(Wt::Auth::PasswordStrengthValidator::OneCharClass, 5);
 	_passwordService.setStrengthValidator(strengthValidator);
 
 // 	if(Wt::Auth::GoogleService::configured() && configurations()->getBool("GoogleOAuth", ModuleDatabase::Authentication, false))

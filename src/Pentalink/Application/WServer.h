@@ -17,6 +17,7 @@ namespace WW
 
 namespace PL
 {
+	class MatchMakingServer;
 	typedef std::vector<const Wt::Auth::OAuthService*> OAuthServiceMap;
 
 	class WServer : public Wt::WServer
@@ -35,11 +36,15 @@ namespace PL
 		const Wt::Auth::PasswordService &getPasswordService() const { return _passwordService; }
 		const OAuthServiceMap &getOAuthServices() const { return _oAuthServices; }
 
+		MatchMakingServer *matchMakingServer() const { return _matchMakingServer; }
+
 	protected:
 		void configureAuth();
 
 		Wt::Dbo::Session _dboSession;
 		Wt::Dbo::SqlConnectionPool *_sqlPool = nullptr;
+
+		MatchMakingServer *_matchMakingServer = nullptr;
 
 		Wt::Auth::AuthService _authService;
 		Wt::Auth::PasswordService _passwordService;

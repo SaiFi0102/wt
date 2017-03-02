@@ -11,6 +11,7 @@
 namespace PL
 {
 	class AuthWidget;
+	class MatchFinder;
 
 	class AuthLogin : public Wt::Auth::Login
 	{
@@ -28,7 +29,7 @@ namespace PL
 	{
 	public:
 		WApplication(const Wt::WEnvironment& env);
-		//virtual ~WApplication() override;
+		virtual ~WApplication() override;
 
 		static WApplication *instance() { return dynamic_cast<WApplication*>(Wt::WApplication::instance()); }
 		static WApplication *createApplication(const Wt::WEnvironment &env) { return new WApplication(env); }
@@ -38,10 +39,8 @@ namespace PL
 		UserDatabase &userDatabase() { return _userDatabase; }
 
 		//Widgets
-		Wt::WTemplate *mainTemplate() const { return _mainTemplate; }
-		Wt::WNavigationBar *mainNavBar() const { return _navBar; }
-		Wt::WMenu *mainMenu() const { return _mainMenu; }
 		Wt::WStackedWidget *mainStack() const { return _mainStack; }
+		MatchFinder *matchFinder() const { return _matchFinder; }
 
 		//Error handling
 		Wt::WDialog *errorDialog() const { return _errorDialog; }
@@ -53,16 +52,14 @@ namespace PL
 		void handleAuthChanged();
 		void handleInternalPathChanged(std::string path);
 
-		void lazyLoadWidgets();
+		void lazyLoadMatchFinder();
 		void lazyLoadLoginWidget();
 
 		//Widgets
-		Wt::WTemplate *_mainTemplate = nullptr;
 		Wt::WStackedWidget *_mainStack = nullptr;
-		Wt::WNavigationBar *_navBar = nullptr;
-		Wt::WMenu *_mainMenu = nullptr;
 
 		AuthWidget *_authWidget = nullptr;
+		MatchFinder *_matchFinder = nullptr;
 
 		Wt::WDialog *_errorDialog = nullptr;
 		Wt::WText *_errorDialogText = nullptr;

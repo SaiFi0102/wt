@@ -2,6 +2,7 @@
 #include "Application/WServer.h"
 
 #include "Widgets/AuthWidget.h"
+#include "Widgets/MatchFinder.h"
 
 #include <Wt/WNavigationBar>
 #include <Wt/WMenu>
@@ -99,10 +100,10 @@ WApplication::WApplication(const Wt::WEnvironment& env)
 	enableUpdates();
 }
 
-// WApplication::~WApplication()
-// {
-// 
-// }
+WApplication::~WApplication()
+{
+	delete _matchFinder; //Must delete it from derived class so that the widget can access the application's session id
+}
 
 void WApplication::handleAuthChanged()
 {
@@ -119,7 +120,8 @@ void WApplication::handleInternalPathChanged(std::string path)
 	}
 	else
 	{
-		_mainStack->setCurrentIndex(-1);
+		lazyLoadMatchFinder();
+		_mainStack->setCurrentWidget(_matchFinder);
 	}
 }
 
@@ -129,34 +131,10 @@ void WApplication::lazyLoadLoginWidget()
 		_authWidget = new AuthWidget(_mainStack);
 }
 
-void WApplication::lazyLoadWidgets()
+void WApplication::lazyLoadMatchFinder()
 {
-	if(_mainTemplate)
-		return;
-
-	_mainTemplate = new Wt::WTemplate(Wt::WString::tr("PL.Main"), _mainStack);
-
-	_navBar = new Wt::WNavigationBar();
-	_navBar->setTemplateText(Wt::WString::tr("PL.NavigationBar"));
-	_navBar->bindString("container-class", "container");
-	_navBar->setResponsive(true);
-	_navBar->addMenu(_mainMenu = new Wt::WMenu(_mainStack));
-	_mainMenu->setInternalPathEnabled("/");
-
-	//Logo
-	Wt::WImage *logoImage = new Wt::WImage(Wt::WLink("images/logo.png"), Wt::WString::tr("PL.Logo.Alt"));
-	_navBar->setTitle(logoImage, Wt::WLink(Wt::WLink::InternalPath, "/"));
-
-	//Page widgets
-	auto homeMenuItem = new Wt::WMenuItem(Wt::WString::tr("Home"), new Wt::WText(Wt::WString::tr("Home")));
-	homeMenuItem->setPathComponent("");
-	_mainMenu->addItem(homeMenuItem);
-	auto aboutMenuItem = new Wt::WMenuItem(Wt::WString::tr("About"), new Wt::WText(Wt::WString::tr("About")));
-	aboutMenuItem->setPathComponent("about");
-	_mainMenu->addItem(aboutMenuItem);
-
-	_mainTemplate->bindWidget("content", _mainStack);
-	_mainTemplate->bindWidget("navigation", _navBar);
+	if(!_matchFinder)
+		_matchFinder = new MatchFinder(_mainStack);
 }
 
 void WApplication::showErrorDialog(const Wt::WString &message)

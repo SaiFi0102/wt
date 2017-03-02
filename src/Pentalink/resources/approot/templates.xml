@@ -37,20 +37,84 @@ ${<if:{1}>}
 ${</if:{1}>}
 </message>
 
-<!-- Main templates -->
-<message id="PL.Main">
-${navigation class="navbar-g"}
-${content}
+<message id="PL.FieldH.Narrow">
+${<if:{1}>}
+<div class="form-group">
+	<label class="control-label col-sm-3" for="${id:{1}}">${tr:{2}}</label>
+	<div class="col-sm-9">
+		${{1}}
+		<div class="help-block">${{1}-info}</div>
+	</div>
+</div>
+${</if:{1}>}
 </message>
 
-<message id="PL.NavigationBar">
-<div class="container">
-	${collapse-button}
-	<div class="navbar-header">
-		${expand-button}
-		${title-link}
+<message id="PL.FieldH">
+${<if:{1}>}
+<div class="form-group">
+	<label class="control-label col-sm-2" for="${id:{1}}">${tr:{2}}</label>
+	<div class="col-sm-10">
+		${{1}}
+		<div class="help-block">${{1}-info}</div>
 	</div>
-	${contents}
+</div>
+${</if:{1}>}
+</message>
+
+<message id="PL.FieldH.Narrow.CB">
+${<if:{1}>}
+<div class="form-group">
+	<label class="control-label checkbox-label col-sm-3" for="${id:{1}}">${tr:{2}}</label>
+	<div class="col-sm-9">
+		${{1}}
+		<span class="help-block">${{1}-info}</span>
+	</div>
+</div>
+${</if:{1}>}
+</message>
+
+<!-- Main templates -->
+<message id="PL.MatchPlayerItem">
+<div class="list-group-item">${name}</div>
+</message>
+
+<message id="PL.MatchFinder">
+<div class="container match-finder">
+	<div class="col-sm-9">
+		<div class="panel panel-default">
+			<div class="panel-heading">${tr:Matches}</div>
+			${matches class="list-group"}
+		</div>
+	</div>
+	<div class="col-sm-3">
+		<div class="panel panel-default">
+			<div class="panel-heading">${tr:OnlinePlayers}</div>
+			${onlinePlayers class="list-group"}
+		</div>
+	</div>
+	<div class="col-sm-12">
+		${<show-form>}
+		<div class="panel panel-default">
+			<div class="panel-heading">${tr:CreateMatch}</div>
+			<div class="panel-body">
+				<div class="form-horizontal">
+					${block:PL.FieldH mode Mode}
+					${block:PL.FieldH nPlayers Players}
+					${createBtn class="btn-primary pull-right"}
+				</div>
+			</div>
+		</div>
+		${</show-form>}
+		${<show-match>}
+		<div class="panel panel-default">
+			<div class="panel-heading">${matchName}</div>
+			<div class="panel-body">
+				${matchPlayers class="list-group"}
+				${leaveBtn class="pull-right"}
+			</div>
+		</div>
+		${</show-match>}
+	</div>
 </div>
 </message>
 
@@ -77,10 +141,49 @@ ${content}
 		${</if:oauth>}
 
 		<div class="form-actions pull-right">
-			<p>${login class="btn-primary"}</p>
-			<p>${lost-password class="btn-link"} ${sep}
-			${register class="btn-link"}</p>
+			${login class="btn-primary"} ${sep}
+			${lost-password class="btn btn-default"} ${sep}
+			${register class="btn btn-default"}
 		</div>
+	</div>
+</div>
+</message>
+
+<message id="Wt.Auth.template.registration">
+<div class="Wt-auth-registration">
+	<p>${tr:Wt.Auth.registration-form-info}</p>
+	<p>${password-description}</p>
+
+	<div class="form-horizontal">
+		${<if:user-name>}
+			<div class="form-group">
+				<label for="${id:user-name}" class="control-label col-sm-3">
+					${user-name-label}
+					${confirm-is-you class="Wt-info"}
+				</label>
+				<div class="col-sm-9">
+					${user-name}
+					<div class="help-block">${user-name-info}</div>
+				</div>
+			</div>
+		${</if:user-name>}
+
+		${block:Wt.Auth.field choose-password}
+		${block:Wt.Auth.field repeat-password}
+		${block:Wt.Auth.field email}
+	</div>
+
+	${<if:oauth>}
+		${oauth-description}
+		<label>
+			${tr:Wt.Auth.oauth}
+			<span class="Wt-info">${tr:Wt.Auth.oauth-info}</span>
+		</label>
+		${icons}
+	${</if:oauth>}
+
+	<div class="form-actions pull-right">
+		${cancel-button} ${ok-button class="btn-primary"}
 	</div>
 </div>
 </message>
